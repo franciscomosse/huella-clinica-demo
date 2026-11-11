@@ -1,0 +1,2288 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Huella Clínica · Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap">
+<style>
+/* Layout: barra de roles arriba; debajo, una pantalla por rol o las cuatro en grilla 2x2, todas leyendo la misma receta en vivo. */
+:root {
+  --bg: #ECEFF4; --surface: #FFFFFF; --surface-2: #F5F7FA; --sunken: #E4E9F0;
+  --ink: #101A2B; --ink-2: #2B3648; --muted: #586477; --line: #D5DBE4;
+  --navy: #14213D; --brand: #C2551F; --on-accent: #FFFFFF;
+  --medico: #2A6F97; --paciente: #6247B8; --farmacia: #23845A; --obra: #C2551F;
+  --ok: #1C774F; --ok-bg: #E2F2E9; --warn: #8F5C06; --warn-fill: #F2A93B; --warn-bg: #FBF0DA;
+  --bad: #B53A25; --bad-bg: #FAE5DF; --info: #2A6F97; --info-bg: #E1EDF5;
+  --shadow: 0 1px 2px rgba(16, 26, 43, .06), 0 10px 28px rgba(16, 26, 43, .07);
+  --scrim: rgba(12, 19, 34, .72);
+  --head-pct: 100%; --head-ink: #FFFFFF; --head-icon: #FFFFFF;
+  --f-display: 'Oswald', 'Arial Narrow', Arial, sans-serif;
+  --f-ui: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Consolas, 'Courier New', monospace;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 18px;
+  --sim-bg: #F6F1E7; --sim-ink: #14213D; --sim-line: #8C7B5E; --sim-on: #FFFFFF;
+  --line-strong: #7D889B;
+  --fs-cap: 12px; --fs-sm: 13px; --fs-body: 15px; --fs-h3: 16px; --fs-kpi: 32px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1220; --surface: #131C2E; --surface-2: #19243A; --sunken: #0F1828;
+    --ink: #E9EEF6; --ink-2: #C9D2E0; --muted: #96A3B9; --line: #27334A;
+    --navy: #0E1628; --brand: #F08A55; --on-accent: #0B1220;
+    --medico: #6CB4E0; --paciente: #A996F2; --farmacia: #4FC48C; --obra: #F08A55;
+    --ok: #4FC48C; --ok-bg: rgba(79, 196, 140, .14); --warn: #F2B64A; --warn-fill: #F2B64A; --warn-bg: rgba(242, 182, 74, .14);
+    --bad: #F27A62; --bad-bg: rgba(242, 122, 98, .15); --info: #6CB4E0; --info-bg: rgba(108, 180, 224, .14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 28px rgba(0, 0, 0, .28);
+    --scrim: rgba(5, 9, 18, .8); --head-pct: 28%; --head-ink: #E9EEF6; --head-icon: initial;
+    --sim-bg: #221E17; --sim-ink: #F1E6D2; --sim-line: #8F806A; --sim-on: #1A1610; --line-strong: #64718B;
+    color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) .p-head { box-shadow: inset 0 3px 0 var(--accent); }
+  :root:not([data-theme="light"]) .p-head .ic { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1220; --surface: #131C2E; --surface-2: #19243A; --sunken: #0F1828;
+  --ink: #E9EEF6; --ink-2: #C9D2E0; --muted: #96A3B9; --line: #27334A;
+  --navy: #0E1628; --brand: #F08A55; --on-accent: #0B1220;
+  --medico: #6CB4E0; --paciente: #A996F2; --farmacia: #4FC48C; --obra: #F08A55;
+  --ok: #4FC48C; --ok-bg: rgba(79, 196, 140, .14); --warn: #F2B64A; --warn-fill: #F2B64A; --warn-bg: rgba(242, 182, 74, .14);
+  --bad: #F27A62; --bad-bg: rgba(242, 122, 98, .15); --info: #6CB4E0; --info-bg: rgba(108, 180, 224, .14);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 28px rgba(0, 0, 0, .28);
+  --scrim: rgba(5, 9, 18, .8); --head-pct: 28%; --head-ink: #E9EEF6; --head-icon: initial;
+  --sim-bg: #221E17; --sim-ink: #F1E6D2; --sim-line: #8F806A; --sim-on: #1A1610; --line-strong: #64718B;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .p-head { box-shadow: inset 0 3px 0 var(--accent); }
+:root[data-theme="dark"] .p-head .ic { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { min-height: 100%; }
+html { scroll-padding-top: calc(var(--top-h, 64px) + 12px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--navy); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent, var(--brand)); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: fixed; left: -999px; top: 8px; z-index: 50; }
+.skip:focus { left: 16px; background: #F2F4F8; color: #14213D; padding: 10px 14px; border-radius: 10px; border: 0; font-weight: 700; }
+#view:focus { outline: none; }
+
+/* ---------- barra superior ---------- */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--navy); color: #F2F4F8; }
+.topbar-in { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; margin-right: 6px; }
+.brand-mark { width: 30px; height: 30px; border-radius: 9px; background: #C2551F; display: grid; place-items: center; }
+.brand-name { font-family: var(--f-display); font-weight: 600; font-size: 20px; letter-spacing: .04em; text-transform: uppercase; line-height: 1; }
+.brand-tag { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #9FB0C8; margin-top: 3px; }
+/* las pestañas no se achican: si no entran al lado de la marca, bajan enteras a su propia fila */
+.nav { display: flex; gap: 6px; flex: 1 0 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; color: #C9D3E3; text-decoration: none; font-weight: 600; font-size: 14px; border: 1px solid transparent; }
+.nav a:hover { background: rgba(255, 255, 255, .07); color: #FFFFFF; }
+.nav a[aria-current="page"] { background: #F2F4F8; color: #14213D; }
+.nav .dot { width: 8px; height: 8px; border-radius: 50%; }
+.status { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #C9D3E3; padding: 6px 10px; border-radius: 999px; background: rgba(255, 255, 255, .06); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: #F2B64A; flex: none; }
+.status[data-mode="live"] i { background: #4FC48C; box-shadow: 0 0 0 0 rgba(79, 196, 140, .6); animation: ping 2s infinite; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(79, 196, 140, .55); } 80%, 100% { box-shadow: 0 0 0 7px rgba(79, 196, 140, 0); } }
+
+/* ---------- contenedor ---------- */
+.wrap { padding-block: 22px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-width: 1480px; margin: 0 auto; }
+.sample { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- inicio ---------- */
+.home { display: grid; gap: 26px; }
+.home-head { display: grid; gap: 10px; max-width: 780px; }
+.home-head h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.04; letter-spacing: .01em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.home-head p { margin: 0; font-size: 17px; color: var(--ink-2); max-width: 64ch; }
+.home-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.roles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.role-card { --accent: var(--medico); display: grid; gap: 10px; align-content: start; padding: 18px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: inherit; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.role-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--accent); }
+.role-card:hover { border-color: var(--accent); }
+.role-card .ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.role-card h3 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; }
+.role-card p { margin: 0; color: var(--muted); font-size: 14px; }
+.role-card .go { font-weight: 700; font-size: 14px; color: var(--accent); }
+.role-card .try { font-size: 14px; color: var(--ink-2); }
+.role-card .try b { color: var(--ink); }
+.home h2.sec { font: 600 20px/1.1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); margin: 6px 0 -12px; }
+.howto { display: grid; gap: 12px; }
+.home .howto h2.sec { margin: 0; }
+.howto ol { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; font-size: 16px; color: var(--ink-2); max-width: 70ch; }
+.howto li::marker { font-family: var(--f-display); font-weight: 600; color: var(--brand); }
+.howto .sim-tag { vertical-align: 1px; }
+.if-live { display: none; }
+:root[data-sync="live"] .if-live { display: inline; }
+:root[data-sync="live"] .if-local { display: none; }
+.ctrls-d > summary { cursor: pointer; font-weight: 700; color: var(--ink-2); padding: 8px 0; width: max-content; max-width: 100%; }
+.ctrls-d[open] > summary { margin-bottom: 12px; }
+
+/* ---------- botones y formularios ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid transparent; font-weight: 700; font-size: 14px; text-decoration: none; transition: transform .08s ease, filter .15s ease; white-space: nowrap; }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--accent, var(--brand)); color: var(--on-accent); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn-ghost:hover { border-color: var(--accent, var(--brand)); }
+.btn-ok { background: var(--ok); color: var(--on-accent); }
+.btn-warn { background: var(--warn-fill); color: #241703; }
+.btn-bad { background: var(--bad); color: var(--on-accent); }
+.btn-block { width: 100%; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
+.btn[aria-disabled="true"] { opacity: .45; cursor: progress; }
+.btn-sm { min-height: 34px; padding: 0 12px; font-size: 13px; border-radius: 9px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > span { font-size: 14px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-2); }
+.input, .select { width: 100%; min-height: 42px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
+.input::placeholder { color: var(--muted); opacity: 1; }
+.select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+.input:focus, .select:focus { border-color: var(--accent, var(--brand)); }
+.input:focus-visible, .select:focus-visible { outline: 3px solid var(--accent, var(--brand)); outline-offset: 1px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 11px; background: var(--sunken); gap: 3px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent, var(--brand)); color: var(--on-accent); box-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
+.seg button[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ---------- chips de estado ---------- */
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.t-ok { color: var(--ok); background: var(--ok-bg); }
+.t-warn { color: var(--warn); background: var(--warn-bg); }
+.t-bad { color: var(--bad); background: var(--bad-bg); }
+.t-info { color: var(--info); background: var(--info-bg); }
+
+/* ---------- paneles ---------- */
+.wrap.full { max-width: none; padding-block: 14px 18px; }
+.board { display: flex; flex-direction: column; gap: 12px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 1280px) {
+  .board { height: calc(100vh - var(--top-h, 64px) - 32px); height: calc(100dvh - var(--top-h, 64px) - 32px); min-height: 460px; }
+  .board .p-body { overscroll-behavior: contain; }
+  .board .grid4 { flex: 1; min-height: 0; }
+}
+.solo { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
+.solo.is-phone { max-width: 440px; }
+.panel { --accent: var(--medico); container-type: inline-size; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; position: relative; min-width: 0; min-height: 0; transition: box-shadow .25s ease; }
+.panel.is-next { box-shadow: 0 0 0 3px var(--accent), var(--shadow); }
+
+/* guía de la demo */
+.coach { --accent: var(--medico); display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--r-md); background: var(--sim-bg); border: 1px dashed var(--sim-line); box-shadow: inset 4px 0 0 var(--accent); min-width: 0; color: var(--sim-ink); }
+.coach-n { width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-family: var(--f-display); font-weight: 600; font-size: 15px; }
+.coach-t { min-width: 0; font-size: 15px; color: var(--sim-ink); }
+.coach-t b { color: color-mix(in srgb, var(--accent) 75%, var(--sim-ink)); font-weight: 700; }
+.coach-go { margin-left: auto; flex: none; }
+.coach { flex-wrap: wrap; row-gap: 8px; }
+.coach-t { flex: 1 1 240px; }
+
+/* datos fijos de la receta (médico) */
+.facts { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 10px; }
+.facts div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; display: grid; gap: 1px; min-width: 0; }
+.facts small { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.facts b { font-size: 15px; font-weight: 600; }
+.facts span { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel[data-role="medico"] { --accent: var(--medico); }
+.panel[data-role="paciente"] { --accent: var(--paciente); }
+.panel[data-role="farmacia"] { --accent: var(--farmacia); }
+.panel[data-role="obra"] { --accent: var(--obra); }
+.p-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: color-mix(in srgb, var(--accent) var(--head-pct), var(--surface)); color: var(--head-ink); border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); flex: none; }
+.p-head .ic { color: var(--head-icon, var(--accent)); }
+.p-head .ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(255, 255, 255, .18); display: grid; place-items: center; flex: none; }
+.p-title { display: grid; min-width: 0; }
+.p-title b { font-family: var(--f-display); font-weight: 600; font-size: 18px; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; }
+.p-title small { font-size: 13px; opacity: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p-head .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.p-body { padding: 16px; display: grid; gap: 16px; align-content: start; overflow-y: auto; flex: 1; min-height: 0; background: var(--surface-2); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: 4px 10px; flex-wrap: wrap; }
+.card-h h3 { margin: 0; font: 600 16px/1.2 var(--f-display); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.form-grid .full { grid-column: 1 / -1; }
+.empty { display: grid; gap: 6px; justify-items: start; padding: 14px; border-radius: var(--r-md); border: 1px dashed var(--line); color: var(--muted); font-size: 14px; }
+.empty b { color: var(--ink-2); font-weight: 600; }
+
+/* lista de recetas */
+.rows { display: grid; gap: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 8px; border-top: 1px solid var(--line); }
+.who small .mono { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.row:first-child { border-top: 0; }
+.row .who { min-width: 0; display: grid; }
+.row .who b { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .who small { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .who b, .row .who small { white-space: normal; }
+.code { font-family: var(--f-mono); font-size: 13px; font-weight: 600; padding: 3px 7px; border-radius: 6px; background: var(--sunken); color: var(--ink-2); white-space: nowrap; }
+.row .meta { display: grid; justify-items: end; gap: 3px; }
+.row .meta small { color: var(--muted); font-size: 12px; }
+button.row { width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+button.row:first-child { border-top: 0; }
+button.row:hover { background: var(--surface-2); }
+button.row[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.flash { animation: flash 1.6s ease-out; }
+@keyframes flash { 0% { background: color-mix(in srgb, var(--accent) 26%, transparent); } 100% { background: transparent; } }
+
+/* estado de la receta en curso (médico) */
+.live { display: grid; gap: 12px; padding: 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+.live-top { display: flex; gap: 12px; align-items: center; }
+.pulse { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--info-bg); color: var(--info); position: relative; }
+.pulse::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--info); opacity: .5; animation: ring 1.6s ease-out infinite; }
+@keyframes ring { from { transform: scale(.85); opacity: .6; } to { transform: scale(1.3); opacity: 0; } }
+.badge { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.badge.ok { background: var(--ok); color: var(--on-accent); }
+.badge.warn { background: var(--warn-fill); color: #241703; }
+.badge.bad { background: var(--bad); color: var(--on-accent); }
+.live h4 { margin: 0; font-size: 16px; font-weight: 700; }
+.live p { margin: 0; color: var(--muted); font-size: 14px; }
+.inline-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.inline-form .field { flex: 1 1 200px; }
+
+/* ---------- paciente (celular) ---------- */
+.phone-body { background: var(--surface-2); }
+
+.cred { border-radius: 16px; padding: 16px; color: #FFFFFF; background: linear-gradient(135deg, #3E2A8C, #6247B8 55%, #7E63D6); display: grid; gap: 14px; position: relative; overflow: hidden; }
+.cred::after { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.cred .top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .9; }
+.cred .name { font-family: var(--f-display); font-weight: 600; font-size: 24px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; }
+.cred .num { font-family: var(--f-mono); font-size: 15px; letter-spacing: .12em; }
+.cred .foot { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.cred.is-compact { grid-auto-flow: column; align-items: center; justify-content: space-between; padding: 10px 14px; gap: 10px; }
+.cred.is-compact .top, .cred.is-compact .foot { display: none; }
+.cred.is-compact .name { font-size: 18px; }
+.cred.is-compact .num { font-size: 13px; }
+.request { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+.request h4 { margin: 0; font-size: 16px; }
+.request p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.rx { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.rx .info { display: grid; gap: 4px; min-width: 0; }
+.rx .info b { font-size: 15px; }
+.rx .info small { color: var(--muted); font-size: 13px; }
+.qr { width: 66px; height: 66px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); padding: 5px; display: grid; grid-template-columns: repeat(11, 1fr); gap: 1px; }
+.qr i { background: var(--ink); border-radius: 1px; }
+.qr i.o { background: transparent; }
+.feed { display: grid; gap: 10px; }
+.feed-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: start; font-size: 14px; }
+.feed-item .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: var(--muted); }
+.feed-item time { color: var(--muted); font-size: 12px; }
+.feed-item p { margin: 0; color: var(--ink-2); min-width: 0; overflow-wrap: anywhere; }
+.r-medico, .r-recepcion { background: var(--medico) !important; }
+.t-mute { color: var(--muted); background: var(--sunken); }
+.turno-act { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.turnos .row { grid-template-columns: minmax(0, 1fr) auto; }
+.turnos .row .who b, .turnos .row .who small { white-space: normal; }
+.llegada-ok { border-left: 5px solid var(--ok); }
+.llegada-ok .req-top .badge { width: 34px; height: 34px; }
+.r-paciente { background: var(--paciente) !important; }
+.r-farmacia { background: var(--farmacia) !important; }
+.r-obra, .r-sistema { background: var(--obra) !important; }
+
+/* ---------- farmacia ---------- */
+.search { position: relative; }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search .input { padding-left: 38px; }
+.price { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--line); }
+.price div { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 8px 0; display: grid; gap: 2px; grid-auto-flow: column; justify-content: space-between; align-items: baseline; }
+.price small { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.price b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.price div:last-child b { font: 600 24px/1 var(--f-display); color: var(--farmacia); }
+.checks { display: grid; gap: 8px; }
+.check { display: flex; gap: 10px; align-items: center; font-size: 14px; }
+.check .mk { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.mk.ok { background: var(--ok); color: var(--on-accent); }
+.mk.warn { background: var(--warn-fill); color: #241703; }
+.mk.bad { background: var(--bad); color: var(--on-accent); }
+.check span { min-width: 0; }
+.check span small { display: block; color: var(--muted); font-size: 13px; }
+.verdict { border-radius: var(--r-md); padding: 12px 14px; display: grid; gap: 4px; }
+.verdict b { font-size: 15px; }
+.verdict span { font-size: 14px; color: var(--ink-2); }
+.v-ok { background: var(--ok-bg); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); }
+.v-warn { background: var(--warn-bg); border: 1px solid color-mix(in srgb, var(--warn-fill) 55%, transparent); }
+.v-bad { background: var(--bad-bg); border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent); }
+
+/* ---------- obra social ---------- */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.kpi small { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.kpi b { font-family: var(--f-display); font-weight: 600; font-size: 34px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 13px; color: var(--muted); }
+.kpi.k-ok b { color: var(--ok); } .kpi.k-warn b { color: var(--warn); } .kpi.k-bad b { color: var(--bad); }
+.bar { height: 10px; border-radius: 999px; overflow: hidden; display: flex; background: var(--sunken); }
+.bar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+td .sub { display: block; color: var(--muted); font-size: 12px; }
+.audit { display: grid; gap: 8px; }
+.audit-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+.audit-item b { font-size: 14px; }
+.audit-item small { display: block; color: var(--muted); font-size: 13px; }
+.audit-item.hot { border-color: color-mix(in srgb, var(--bad) 55%, transparent); background: var(--bad-bg); }
+
+/* ---------- escaneo de rostro ---------- */
+.scan { position: absolute; inset: 0; z-index: 5; background: var(--scrim); display: grid; justify-items: center; align-items: start; padding: 18px; }
+.scan-card { width: min(300px, 100%); background: var(--surface); border-radius: 22px; padding: 18px; display: grid; gap: 12px; justify-items: center; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.scan-frame { width: 168px; height: 168px; position: relative; display: grid; place-items: center; }
+.scan-frame svg.face { width: 128px; height: 128px; }
+.scan-frame .br { position: absolute; width: 30px; height: 30px; border: 5px solid var(--accent); }
+.br.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 10px 0 0 0; }
+.br.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 10px 0 0; }
+.br.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 10px; }
+.br.brr { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 10px 0; }
+.scan-line { position: absolute; left: 14px; right: 14px; height: 3px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 14px 3px color-mix(in srgb, var(--accent) 55%, transparent); animation: sweep 1.1s ease-in-out infinite alternate; }
+@keyframes sweep { from { top: 18px; } to { top: calc(100% - 20px); } }
+.scan-card p { margin: 0; font-weight: 700; }
+.scan-card small { color: var(--muted); text-align: center; }
+.scan[data-done="ok"] .br { border-color: var(--ok); }
+.scan[data-done="warn"] .br { border-color: var(--warn); }
+.scan[data-done="bad"] .br { border-color: var(--bad); }
+.scan[data-done] .scan-line { display: none; }
+
+/* ---------- avisos ---------- */
+.toasts { position: fixed; z-index: 40; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; width: min(360px, calc(100vw - 32px)); }
+.toast { background: var(--navy); color: #F2F4F8; border-radius: 12px; padding: 11px 14px; font-size: 14px; box-shadow: var(--shadow); display: flex; gap: 10px; align-items: center; animation: rise .25s ease-out; border-left: 4px solid var(--t, #4FC48C); }
+@keyframes rise { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+.confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ---------- piezas de la versión 2 ---------- */
+.card, .live { grid-template-columns: minmax(0, 1fr); }
+.btn-block { white-space: normal; text-align: center; line-height: 1.2; padding-block: 9px; }
+.stack { display: grid; gap: 16px; min-width: 0; align-content: start; }
+.hint { margin: 0; font-size: 14px; color: var(--muted); }
+.muted-s { color: var(--muted); font-size: 13px; }
+.aside { font-size: 14px; font-weight: 500; color: var(--muted); }
+.q { display: grid; gap: 6px; justify-items: start; }
+.q-l { font-size: 15px; font-weight: 600; color: var(--ink); }
+.p-purpose { margin: 0; font-size: 15px; color: var(--ink-2); }
+.board .p-purpose { display: none; }
+.head-tag { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.vchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .02em; background: rgba(0, 0, 0, .22); white-space: nowrap; }
+.link { border: 0; background: none; padding: 2px 0; font-weight: 600; font-size: 13px; color: var(--accent, var(--brand)); text-decoration: underline; text-underline-offset: 3px; justify-self: start; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-row .btn { flex: 1 1 140px; }
+.sub-h { margin-top: 10px; padding: 8px 8px 4px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--bad); border-top: 1px solid var(--line); }
+
+/* médico */
+.live-txt { min-width: 0; display: grid; gap: 2px; }
+.live-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.live details summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
+.live details .inline-form { margin-top: 10px; }
+
+/* paciente */
+.req-top { display: flex; gap: 12px; align-items: center; }
+.req-txt { display: grid; gap: 2px; min-width: 0; }
+.req-txt h4 { margin: 0; font-size: 16px; }
+.req-txt p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.pulse-acc { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.pulse-acc::after { border-color: var(--accent); }
+.notice { border: 2px solid var(--warn-fill); background: var(--warn-bg); }
+.row.rx { grid-template-columns: minmax(0, 1fr) auto; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.deleg { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.deleg div { display: grid; gap: 2px; }
+.deleg small { color: var(--muted); font-size: 13px; }
+
+/* farmacia */
+.card-h h3 { display: inline-flex; align-items: center; gap: 7px; }
+.card-h h3 svg { width: 16px; height: 16px; }
+.rx-head { display: grid; gap: 2px; }
+.rx-head b { font-size: 18px; }
+.rx-head span { color: var(--muted); font-size: 14px; }
+.person { display: flex; gap: 10px; align-items: center; }
+.person svg { flex: none; }
+.person div { display: grid; min-width: 0; }
+.person small { color: var(--muted); }
+.receipt { border-width: 1px 1px 1px 5px; border-style: solid; }
+.receipt-ok { border-left-color: var(--ok); }
+.receipt-warn { border-left-color: var(--warn-fill); }
+.receipt-bad { border-left-color: var(--bad); }
+.kv { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.kv div { min-width: 0; }
+.kv dt { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.kv dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.kv dd small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+
+/* obra social: señales */
+.audit-item { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.ai-txt { display: grid; gap: 2px; min-width: 0; }
+.ai-tipo { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ai-act { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.audit-item { border-left: 4px solid var(--warn-fill); grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.audit-item.lvl-alta, .audit-item.lvl-media { background: var(--surface); }
+.audit-item.lvl-alta { border-left-color: var(--bad); }
+.audit-item.done { border-left-color: var(--line); }
+.ai-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.ai-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; align-items: start; padding-top: 8px; margin-top: 8px; border-top: 1px solid var(--line); }
+.ai-list li:first-child { margin-top: 2px; }
+.ai-s { font-size: 14px; font-weight: 600; }
+.ai-more { justify-self: start; }
+.cell-btn { border: 0; background: none; padding: 0; text-align: left; font-weight: 600; color: var(--ink); cursor: pointer; }
+.cell-btn:hover { color: var(--accent); }
+tr.is-sel td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.show-narrow { display: none; }
+td .sub.show-narrow { display: none; }
+.trace-sum { display: grid; gap: 3px; font-size: 14px; color: var(--ink-2); }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.timeline li { display: grid; grid-template-columns: 12px 44px minmax(0, 1fr); gap: 8px; align-items: start; padding: 7px 0; position: relative; }
+.timeline li::before { content: ""; position: absolute; left: 5px; top: 20px; bottom: -6px; width: 2px; background: var(--line); }
+.timeline li:last-child::before { display: none; }
+.timeline .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; position: relative; z-index: 1; }
+.timeline time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.timeline p { margin: 0; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.trace-al { display: flex; flex-wrap: wrap; gap: 6px; }
+.trace-al .chip { white-space: normal; }
+.demo-txt { font-size: 14px; color: var(--muted); flex: 1 1 220px; }
+
+/* inicio: qué controla */
+.ctrls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ctrl { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: start; align-content: start; padding: 14px 16px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+.ctrl-ic { grid-row: span 2; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--brand); }
+.ctrl b { font-size: 15px; }
+.ctrl span:last-child { font-size: 14px; color: var(--muted); }
+
+/* foco visible dentro de la barra de navegación (que recorta hacia arriba y abajo) */
+.nav a:focus-visible { outline-offset: -3px; }
+.toasts { pointer-events: none; }
+
+/* ---------- capa «▷ Simulador»: controles de la demo, fuera del producto ---------- */
+.sim { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 14px; color: var(--sim-ink); font-size: 14px; background: repeating-linear-gradient(-45deg, transparent 0 9px, color-mix(in srgb, var(--sim-line) 10%, transparent) 9px 10px), var(--sim-bg); border-bottom: 1px dashed var(--sim-line); }
+.sim-tag { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; background: var(--sim-ink); color: var(--sim-on); white-space: nowrap; }
+.sim-q { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.sim-q > .lbl { font-weight: 600; }
+.sim-q > span[id] { display: contents; }
+.sim .seg { background: transparent; border: 1px dashed var(--sim-line); padding: 2px; border-radius: 9px; }
+.sim .seg button { color: var(--sim-ink); padding: 5px 10px; border-radius: 6px; }
+.sim .seg button[aria-pressed="true"] { background: var(--sim-ink); color: var(--sim-on); box-shadow: none; }
+.sim .btn { min-height: 32px; font-size: 13px; border: 1px dashed var(--sim-line); color: var(--sim-ink); background: transparent; }
+.sim .btn-bad { background: var(--bad); border: 1px solid var(--bad); color: var(--on-accent); }
+.sim .hint, .sim .demo-txt { color: var(--sim-ink); opacity: .8; }
+.sim .confirm { flex: 1 1 260px; min-width: 0; }
+/* configuración de la obra social (plegada en «Las 4 juntas») */
+.cfg > summary { cursor: pointer; font-weight: 600; color: var(--ink-2); padding: 6px 0; }
+.cfg[open] > summary { margin-bottom: 10px; }
+.cfg-body { display: grid; gap: 10px; }
+/* «Las 4 juntas»: más compacto */
+.grid4 .p-body { padding: 12px; gap: 12px; }
+.grid4 .empty { border: 0; padding: 2px 0; }
+.grid4 .kpi b { font-size: 26px; }
+
+@container (max-width: 520px) {
+  .row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .row .meta { display: flex; justify-content: space-between; align-items: center; }
+  .row .who b, .row .who small { white-space: normal; }
+  .row.rx { grid-template-columns: minmax(0, 1fr) auto; }
+  .show-narrow { display: inline-flex; margin-top: 4px; }
+  td .sub.show-narrow { display: block; margin-top: 2px; }
+  .ai-list li { grid-template-columns: minmax(0, 1fr); }
+  td .chip { white-space: normal; }
+  .kv { grid-template-columns: minmax(0, 1fr); }
+  .audit-item { grid-template-columns: minmax(0, 1fr); }
+  .ai-act { justify-content: flex-start; }
+  .turno-act { justify-content: flex-start; }
+  .facts small { letter-spacing: .04em; }
+}
+@container (max-width: 360px) {
+  .facts div:last-child span { display: none; }
+  .price { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .price div { grid-auto-flow: column; justify-content: space-between; align-items: baseline; }
+}
+@media (max-width: 1100px) { .ctrls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .ctrls { grid-template-columns: minmax(0, 1fr); }
+  .brand-tag { display: none !important; }
+  .status { order: 2; margin-left: auto; }
+  .nav { order: 3; flex-basis: 100%; }
+}
+
+/* ---------- adaptable ---------- */
+/* cada pantalla se acomoda a su propio ancho: angosta en "Las 4 juntas", ancha cuando está sola */
+@container (max-width: 720px) {
+  .two, .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 520px) {
+  .hide-narrow { display: none; }
+  .p-head .right { display: none; }
+  .audit-item { grid-template-columns: minmax(0, 1fr); }
+  .audit-item .chip { justify-self: start; }
+  .kpi b { font-size: 30px; }
+}
+@media (max-width: 1279px) {
+  .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: max(540px, calc(100vh - var(--top-h, 64px) - 40px)); }
+  .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 859px) {
+  .grid4 { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
+  .grid4 .p-body { overflow: visible; }
+}
+@media (max-width: 760px) {
+  .roles { grid-template-columns: minmax(0, 1fr); }
+}
+/* guía: fija arriba en «Las 4 juntas» mientras se baja de un panel a otro */
+@media (max-width: 1279px) {
+  .board > .coach { position: sticky; top: calc(var(--top-h, 64px) + 8px); z-index: 15; }
+  /* guía pegada: «Ir ↓» al lado del texto, no en una fila aparte (tapa menos pantalla en el celular) */
+  .board > .coach .coach-t { flex-basis: 0; }
+  /* se suma al scroll-padding-top de html (barra + 12 px): el panel queda 8 px debajo de la guía */
+  .board .panel { scroll-margin-top: calc(var(--coach-h, 90px) + 4px); }
+}
+@media (min-width: 1280px) { .board .coach-go { display: none; } }
+@media (max-width: 1360px) { .status .long { display: none; } }
+@media (max-height: 500px) {
+  .topbar { position: relative; top: 0; }
+  html { --top-h: 0px !important; }
+  /* celular apaisado: marca, pestañas y estado en una sola fila */
+  .topbar-in { padding-block: 6px; gap: 6px 10px; }
+  .brand-tag { display: none; }
+  #sync-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .status { padding: 8px; }
+  .nav a { padding: 6px 10px; }
+}
+@container (max-width: 300px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+/* celular: objetivos táctiles de 44 px */
+@media (max-width: 760px), (pointer: coarse) {
+  .btn, .input, .select { min-height: 44px; }
+  .btn-sm, .sim .btn { min-height: 44px; padding: 0 14px; }
+  .seg button { min-height: 44px; padding: 8px 14px; font-size: 14px; }
+  .sim .seg button { padding: 8px 12px; }
+  .nav a { min-height: 40px; }
+  .brand { min-height: 44px; }
+  .link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 2px; }
+  .live details summary, .ctrls-d > summary, .cfg > summary { padding: 12px 0; min-height: 44px; }
+  .cell-btn { display: block; width: 100%; min-height: 44px; padding: 4px 0; }
+}
+/* celular: piso de 13 px y las 5 pantallas a la vista */
+@media (max-width: 760px) {
+  .coach-t { font-size: 14px; }
+  .chip, .sample, .head-tag, .vchip, .status, .code, .legend, .feed-item time, .timeline time, .row .meta small, td .sub, .cred .top, .cred .foot, .facts small, .facts span, .who small .mono, .kpi small, .kpi span, th, .price small, .kv dt, .kv dd small, .sub-h, .ai-tipo, .audit-item small, .p-title small, .row .who small, .rx .info small, .check span small, .deleg small, .mono, .sim-tag, .scan-card small { font-size: 13px; }
+  .facts small, .kpi small, th, .price small, .kv dt, .sub-h, .ai-tipo, .sample { letter-spacing: .05em; }
+  .field > span { font-size: 14px; }
+  .demo-txt, .muted-s { font-size: 14px; }
+  .nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; overflow: visible; }
+  .nav a { flex-direction: column; justify-content: center; text-align: center; gap: 3px; padding: 7px 2px 5px; font-size: 13px; line-height: 1.15; white-space: normal; border-radius: 10px; min-height: 44px; position: relative; }
+  /* el color de cada rol pasa a una rayita arriba de la pestaña: la barra baja a dos filas de 44 px */
+  .nav a .dot { position: absolute; top: 3px; left: 50%; width: 18px; height: 3px; border-radius: 2px; transform: translateX(-50%); }
+  .nav a svg { display: none; }
+  .topbar-in { padding-block: 6px; row-gap: 6px; }
+}
+@media (max-width: 360px) {
+  .nav { gap: 2px; margin-inline: -8px; }
+  .nav a { padding: 6px 0; letter-spacing: -.01em; }
+}
+@media (max-width: 380px) {
+  #sync-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .status { padding: 8px; }
+}
+/* celular: menos cajas anidadas en las pantallas solas */
+@media (max-width: 600px) {
+  .solo .panel { border: 0; border-radius: 0; box-shadow: none; margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); }
+  .solo .p-body { padding: 12px max(16px, env(safe-area-inset-left, 0px)); }
+  .facts div { background: none; border: 0; border-left: 3px solid var(--line); border-radius: 0; padding: 2px 0 2px 10px; }
+  .empty { border: 0; padding: 4px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+</style>
+
+<button class="skip" type="button" id="skip">Ir a la pantalla</button>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#">
+      <span class="brand-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg></span>
+      <span><span class="brand-name">Huella Clínica</span><span class="brand-tag">Receta digital con Face ID</span></span>
+    </a>
+    <nav class="nav" aria-label="Pantallas">
+      <a href="#medico" data-route="medico"><span class="dot" style="background:#6CB4E0"></span>Médico</a>
+      <a href="#paciente" data-route="paciente"><span class="dot" style="background:#A996F2"></span>Paciente</a>
+      <a href="#farmacia" data-route="farmacia"><span class="dot" style="background:#4FC48C"></span>Farmacia</a>
+      <a href="#obra-social" data-route="obra-social"><span class="dot" style="background:#F08A55"></span>Obra social</a>
+      <a href="#todas" data-route="todas"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Las 4 juntas</a>
+    </nav>
+    <span class="status" id="sync" data-mode="local" role="status"><i></i><span id="sync-text">Conectando…</span></span>
+  </div>
+</header>
+
+<main class="wrap" id="view" tabindex="-1"></main>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+  document.documentElement.lang = 'es-AR';
+
+  /* ================= datos de ejemplo (ficticios) ================= */
+  var AFILIADOS = {
+    rosa: { nombre: 'Rosa Benítez', corto: 'Rosa', edad: 78, credencial: '4021 3388 01', plan: 'Plan Azul', piel: '#E4BE98', pelo: '#B9BEC7', largo: false, peinado: 'carre', ropa: '#7E6F96',
+      familiar: { nombre: 'Lucas Benítez', relacion: 'hijo', piel: '#D9AE86', pelo: '#4A2E1E', largo: false } },
+    jorge: { nombre: 'Jorge Paredes', corto: 'Jorge', edad: 56, credencial: '4021 7710 02', plan: 'Plan Oro', piel: '#D6A77F', pelo: '#2B2A33', largo: false,
+      familiar: { nombre: 'Marta Paredes', relacion: 'esposa', piel: '#E2B994', pelo: '#6B3E26', largo: true } },
+    ana: { nombre: 'Ana Sosa', corto: 'Ana', edad: 34, credencial: '4021 5124 03', plan: 'Plan Azul', piel: '#EBC6A2', pelo: '#3A2418', largo: true,
+      familiar: { nombre: 'Carlos Sosa', relacion: 'padre', piel: '#D8AA80', pelo: '#9AA0A8', largo: false } },
+    hugo: { nombre: 'Hugo Ledesma', corto: 'Hugo', edad: 67, credencial: '4021 6650 04', plan: 'Plan Azul', piel: '#D2A27A', pelo: '#8E949C', largo: false, familiar: null },
+    elena: { nombre: 'Elena Ríos', corto: 'Elena', edad: 71, credencial: '4021 2209 05', plan: 'Plan Oro', piel: '#E8C09A', pelo: '#C9CDD2', largo: true, familiar: null },
+    mario: { nombre: 'Mario Quiroga', corto: 'Mario', edad: 59, credencial: '4021 8873 06', plan: 'Plan Azul', piel: '#C99A70', pelo: '#2A2522', largo: false, familiar: null },
+    sofia: { nombre: 'Sofía Acuña', corto: 'Sofía', edad: 45, credencial: '4021 4417 07', plan: 'Plan Oro', piel: '#EDC9A6', pelo: '#5A3A22', largo: true, familiar: null },
+    raul: { nombre: 'Raúl Ibáñez', corto: 'Raúl', edad: 80, credencial: '4021 9932 08', plan: 'Plan Azul', piel: '#DDB08A', pelo: '#D5D8DC', largo: false, familiar: null }
+  };
+  var DEMO_AF = ['rosa', 'jorge', 'ana'];
+  var MEDICOS = {
+    ruiz: { nombre: 'Dr. Martín Ruiz', matricula: 'MN 123.456', especialidad: 'Clínica médica', porHora: 4, piel: '#E0B48C', pelo: '#3B2A20', largo: false },
+    mendez: { nombre: 'Dra. Laura Méndez', matricula: 'MP 45.210', especialidad: 'Medicina general', porHora: 2 },
+    paz: { nombre: 'Dr. Andrés Paz', matricula: 'MN 98.731', especialidad: 'Cardiología', porHora: 3 }
+  };
+  var MEDICO_ID = 'ruiz', MEDICO = MEDICOS.ruiz;
+  var SECRETARIA = { nombre: 'Secretaria', piel: '#EBC6A2', pelo: '#9C5B2E', largo: true, ropa: '#4F6D7A' };
+  var FARMACIAS = {
+    central: { nombre: 'Farmacia Central', sucursal: 'Sucursal Centro' },
+    puente: { nombre: 'Farmacia del Puente', sucursal: 'Av. San Martín 1200' }
+  };
+  var FARMACIA_ID = 'central', FARMACIA = FARMACIAS.central;
+  // Persona que no es el afiliado ni un familiar autorizado: se valida con su propio DNI y Face ID, pero no tiene autorización.
+  var TERCERO = { nombre: 'Ramiro Gil', corto: 'Ramiro', piel: '#C99569', pelo: '#7A3E1D', largo: false };
+  // Cara que aparece en la consulta cuando el que se sienta no es el paciente.
+  var OTRA_CARA = { piel: '#BF8A60', pelo: '#2E2A2A', largo: true };
+  // Coberturas de referencia: crónicos del PMO al 70 %, diabetes al 100 % (Ley 26.914), agudos al 40 %.
+  var MEDS = [
+    { id: 'atorva', nombre: 'Atorvastatina 20 mg', pres: '30 comprimidos', cie: 'E78.0', dx: 'Hipercolesterolemia', precio: 24300, cob: 70 },
+    { id: 'metfor', nombre: 'Metformina 850 mg', pres: '60 comprimidos', cie: 'E11.9', dx: 'Diabetes tipo 2', precio: 15800, cob: 100 },
+    { id: 'insul', nombre: 'Insulina glargina 100 UI/ml', pres: '5 lapiceras', cie: 'E10.9', dx: 'Diabetes tipo 1', precio: 98500, cob: 100 },
+    { id: 'enala', nombre: 'Enalapril 10 mg', pres: '30 comprimidos', cie: 'I10', dx: 'Hipertensión arterial', precio: 9900, cob: 70 },
+    { id: 'levo', nombre: 'Levotiroxina 75 mcg', pres: '50 comprimidos', cie: 'E03.9', dx: 'Hipotiroidismo', precio: 12600, cob: 70 },
+    { id: 'amoxi', nombre: 'Amoxicilina 500 mg', pres: '21 comprimidos', cie: 'J01.9', dx: 'Sinusitis aguda', precio: 8900, cob: 40 }
+  ];
+  var MOTIVOS = ['Sin celular en la consulta', 'Falla técnica del Face ID', 'Paciente postrado (visita a domicilio)', 'Paciente internado'];
+  // Después de un Face ID que no coincidió, solo tienen sentido las causas técnicas.
+  var MOTIVOS_TRAS_FALLO = ['Falla técnica del Face ID', 'Cambio de aspecto (lesión, cirugía)'];
+  var VIGENCIA = 30 * 24 * 3600 * 1000;
+  var ESTADOS = {
+    firma_rechazada: { label: 'Firma rechazada', tone: 'bad' },
+    esperando: { label: 'Esperando Face ID', tone: 'info' },
+    no_coincide: { label: 'Face ID no coincide', tone: 'bad' },
+    emitida: { label: 'Emitida', tone: 'ok' },
+    emitida_alerta: { label: 'Emitida con alerta', tone: 'warn' },
+    rechazada: { label: 'No emitida', tone: 'bad' },
+    anulada: { label: 'Anulada (no reconocida)', tone: 'bad' },
+    dispensada: { label: 'Dispensada', tone: 'ok' },
+    dispensada_alerta: { label: 'Dispensada con alerta', tone: 'warn' },
+    sin_cobertura: { label: 'Dispensada sin cobertura', tone: 'bad' }
+  };
+  var PARA_DISPENSAR = { emitida: 1, emitida_alerta: 1 };
+  var EMITIDAS = { emitida: 1, emitida_alerta: 1, dispensada: 1, dispensada_alerta: 1, sin_cobertura: 1, anulada: 1 };
+  var FRENADAS = { firma_rechazada: 1, no_coincide: 1, rechazada: 1, anulada: 1, sin_cobertura: 1 };
+  var ROLES = { medico: 1, recepcion: 1, paciente: 1, farmacia: 1, obra: 1, sistema: 1 };
+  // Cuándo valida su identidad el paciente: lo elige cada obra social.
+  var MODOS = { consulta: 'En la consulta', llegada: 'Al llegar' };
+  var TOKEN_HORAS = 4;
+  // Turnos de hoy en el consultorio. Ana viene como particular: no valida su llegada por la obra social.
+  var AGENDA = [{ af: 'rosa', tipo: 'os' }, { af: 'jorge', tipo: 'os' }, { af: 'ana', tipo: 'particular' }];
+  var LLEGADA = { esperando: 1, validada: 1, no_coincide: 1 };
+
+  /* ================= utilidades ================= */
+  function has(o, k) { return typeof k === 'string' && Object.prototype.hasOwnProperty.call(o, k); }
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function two(n) { return (n < 10 ? '0' : '') + n; }
+  // Hora sola si es de hoy; si no, también el día (las recetas de la base compartida pueden ser de otro día).
+  function hora(t) {
+    if (!t) return ''; var d = new Date(t); if (isNaN(d)) return '';
+    var hm = two(d.getHours()) + ':' + two(d.getMinutes());
+    return d.toDateString() === new Date().toDateString() ? hm : two(d.getDate()) + '/' + two(d.getMonth() + 1) + ' ' + hm;
+  }
+  // Para vencimientos (a futuro): «hasta las 23:10», «hasta mañana a las 01:47» o «hasta el 09/11 a las 10:00».
+  function hastaLas(t, cap) {
+    var d = new Date(t), txt; if (!t || isNaN(d)) return '';
+    var hm = two(d.getHours()) + ':' + two(d.getMinutes()), hoy = new Date(), man = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1);
+    if (d.toDateString() === hoy.toDateString()) txt = 'hasta las ' + hm;
+    else if (d.toDateString() === man.toDateString()) txt = 'hasta mañana a las ' + hm;
+    else txt = 'hasta el ' + two(d.getDate()) + '/' + two(d.getMonth() + 1) + ' a las ' + hm;
+    return cap ? txt.charAt(0).toUpperCase() + txt.slice(1) : txt;
+  }
+  function fecha(t) { if (!t) return ''; var d = new Date(t); return isNaN(d) ? '' : two(d.getDate()) + '/' + two(d.getMonth() + 1) + '/' + d.getFullYear(); }
+  var pesos = (function () {
+    try { var f = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }); return function (n) { return f.format(n); }; }
+    catch (e) { return function (n) { return '$ ' + Math.round(n); }; }
+  })();
+  function med(id) { for (var i = 0; i < MEDS.length; i++) if (MEDS[i].id === id) return MEDS[i]; return MEDS[0]; }
+  function af(key) { return has(AFILIADOS, key) ? AFILIADOS[key] : AFILIADOS.rosa; }
+  function medico(id) { return has(MEDICOS, id) ? MEDICOS[id] : MEDICO; }
+  function farmacia(id) { return has(FARMACIAS, id) ? FARMACIAS[id] : FARMACIA; }
+  function chip(estado) { var e = has(ESTADOS, estado) ? ESTADOS[estado] : ESTADOS.esperando; return '<span class="chip t-' + e.tone + '">' + esc(e.label) + '</span>'; }
+  function dispensable(r) { return !!r && has(PARA_DISPENSAR, r.estado); }
+  // Receta emitida con excepción que el afiliado todavía no confirmó (antes o después de retirarla).
+  function porConfirmar(r) { return !!r && !!r.excepcion && r.reconocida === null && r.estado !== 'anulada' && has(EMITIDAS, r.estado); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function nuevoCodigo() {
+    var abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+    for (var i = 0; i < 5; i++) s += abc.charAt(Math.floor(Math.random() * abc.length));
+    return 'RX-' + s;
+  }
+  function slug(s) {
+    return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+  }
+  function elDr(d) { return (d.nombre.indexOf('Dra.') === 0 ? 'la ' : 'el ') + d.nombre; }
+  function delDr(d) { return (d.nombre.indexOf('Dra.') === 0 ? 'de la ' : 'del ') + d.nombre; }
+  function cap(x) { return x.charAt(0).toUpperCase() + x.slice(1); }
+  function str(x, max) { return typeof x === 'string' ? x.slice(0, max || 300) : ''; }
+  function num(x) { return typeof x === 'number' && isFinite(x) ? x : 0; }
+  function isObj(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  // Recetas que firmó esta pestaña: la guía las sigue aunque la base compartida tenga recetas de otros.
+  var MIAS = (function () { try { var v = JSON.parse(sessionStorage.getItem('hc-mias') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } })();
+  function marcarMia(id) { MIAS.push(id); try { sessionStorage.setItem('hc-mias', JSON.stringify(MIAS.slice(-50))); } catch (e) {} }
+  // MULTI: «Las 4 juntas» en pantalla. APP_AF: de quién es el celular que muestra la app del paciente.
+  var MULTI = false, APP_AF = null;
+  function rxRow(r, opts) {
+    var a = af(r.afiliado), m = med(r.med), tag = opts.button ? 'button' : 'div';
+    return '<' + tag + (opts.button ? ' type="button" data-act="' + opts.act + '" data-rx="' + esc(r.id) + '" aria-pressed="' + !!opts.pressed + '"' : '') +
+      ' class="row" data-id="' + esc(r.id) + '"><span class="who"><b>' + esc(opts.title || a.nombre) + '</b><small><span class="mono">' + esc(r.id) + '</span> · ' + esc(m.nombre) + '</small></span>' +
+      '<span class="meta">' + chip(r.estado) + '<small>' + hora(opts.t || r.actualizada) + '</small></span></' + tag + '>';
+  }
+  var ICON = {
+    medico: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v2a5 5 0 0 0 10 0v-1"/><circle cx="21" cy="13" r="1.6"/></svg>',
+    paciente: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
+    farmacia: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18v10H3z"/><path d="M5 10V6h14v4"/><path d="M12 13v5M9.5 15.5h5"/></svg>',
+    obra: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    checkL: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    x: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    xL: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    alert: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v8M12 18.5v.5"/></svg>',
+    alertL: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v9M12 19v.5"/></svg>',
+    face: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 10v1M15 10v1M9.5 15.5c1.4 1 3.6 1 5 0"/></svg>',
+    search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+    info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+    shield: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+    qr: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
+    bell: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg>',
+    receipt: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
+    spark: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg>',
+    plug: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v4"/></svg>'
+  };
+  // Retrato neutro: busto plano sin rasgos (sin ojos ni boca), el mismo de los videos del pitch. Reemplaza la carita
+  // sonriente, que se leía como emoji. El pelo y la ropa dicen quién es; los médicos (con matrícula) van de guardapolvo.
+  var ROPA = ['#5E6E7E', '#4F6D7A', '#6B5B73', '#5B6B85', '#6D7558', '#7A5C58', '#7E6F96'];
+  function faceSVG(p, size) {
+    var h = 0, n = p.nombre || ''; for (var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+    var coat = !!p.matricula, ropa = p.ropa || (coat ? '#2A6F97' : ROPA[h % ROPA.length]);
+    var pein = p.peinado || (p.largo ? 'largo' : 'corto');
+    var g = '';
+    if (pein === 'carre') g += '<path d="M38 58c0-21 11-34 26-34s26 13 26 34v12c0 6-3 9-8 9H46c-5 0-8-3-8-9z" fill="' + p.pelo + '"/>';
+    if (pein === 'largo') g += '<path d="M37 58c0-22 12-35 27-35s27 13 27 35v46H37z" fill="' + p.pelo + '"/>';
+    g += '<path d="M24 128c1-21 17-34 40-34s39 13 40 34z" fill="' + (coat ? '#F3F5F8' : ropa) + '"/>';
+    if (coat) g += '<path d="M24 128c1-21 17-34 40-34s39 13 40 34" fill="none" stroke="#A9B4C2" stroke-width="2.4"/>' +
+      '<path d="M55 95l9 14 9-14z" fill="' + ropa + '"/><path d="M51 95l13 20 13-20" fill="none" stroke="#A9B4C2" stroke-width="2.4" stroke-linejoin="round"/>';
+    g += '<path d="M56 74h16v17c0 4-4 7-8 7s-8-3-8-7z" fill="' + p.piel + '"/><path d="M56 76h16v7c-5 2.5-11 2.5-16 0z" fill="rgba(70,35,10,0.14)"/>' +
+      '<ellipse cx="64" cy="54" rx="21" ry="25" fill="' + p.piel + '"/>';
+    g += pein === 'corto'
+      ? '<path d="M42 54c-1-18 9-30 22-30s23 12 22 30c-3-8-10-13-22-13s-19 5-22 13z" fill="' + p.pelo + '"/>'
+      : '<path d="M42 52c0-16 10-27 22-27s22 11 22 27c-6-7-13-10-22-10s-16 3-22 10z" fill="' + p.pelo + '"/>';
+    if (size) { // avatar redondo: cabeza y hombros llenan el círculo
+      var id = 'av' + h.toString(36);
+      return '<svg class="avatar" viewBox="0 0 128 128" width="' + size + '" height="' + size + '" aria-hidden="true">' +
+        '<defs><clipPath id="' + id + '"><circle cx="64" cy="64" r="64"/></clipPath></defs><g clip-path="url(#' + id + ')">' +
+        '<rect width="128" height="128" fill="#ECE8F4"/><g transform="translate(-23 -17) scale(1.36)">' + g + '</g></g></svg>';
+    }
+    return '<svg class="face" viewBox="0 0 128 128" aria-hidden="true">' + g + '</svg>';
+  }
+  function qrHTML(code) {
+    var h = 0; for (var i = 0; i < code.length; i++) h = (h * 31 + code.charCodeAt(i)) >>> 0;
+    var cells = '';
+    for (var y = 0; y < 11; y++) for (var x = 0; x < 11; x++) {
+      var finder = (x < 3 && y < 3) || (x > 7 && y < 3) || (x < 3 && y > 7);
+      var on;
+      if (finder) on = !(x % 10 === 1 && y % 10 === 1) && !((x === 9 && y === 1) || (x === 1 && y === 9));
+      else { h = (h * 1103515245 + 12345) >>> 0; on = (h >>> 16) % 2 === 0; }
+      cells += '<i' + (on ? '' : ' class="o"') + '></i>';
+    }
+    return '<div class="qr" aria-hidden="true">' + cells + '</div>';
+  }
+
+  /* ================= datos compartidos: forma segura ================= */
+  // Todo lo que llega de la base (o de otra pestaña) se normaliza: si alguien guarda un documento roto, la demo no se cae.
+  function normReceta(raw, id) {
+    if (!isObj(raw) || typeof id !== 'string' || !id) return null;
+    var creada = num(raw.creada) || 0;
+    var r = {
+      id: id.slice(0, 40),
+      afiliado: str(raw.afiliado, 40), med: str(raw.med, 20), cie: str(raw.cie, 12),
+      medicoId: str(raw.medicoId, 40) || MEDICO_ID,
+      estado: has(ESTADOS, raw.estado) ? raw.estado : 'esperando',
+      creada: creada, actualizada: num(raw.actualizada) || creada, vence: num(raw.vence) || (creada + VIGENCIA),
+      firma: isObj(raw.firma) ? { t: num(raw.firma.t), via: raw.firma.via === 'clave' ? 'clave' : 'face' } : null,
+      consulta: isObj(raw.consulta) ? { resultado: str(raw.consulta.resultado, 10), t: num(raw.consulta.t), via: raw.consulta.via === 'llegada' ? 'llegada' : 'consulta' } : null,
+      excepcion: isObj(raw.excepcion) ? { motivo: str(raw.excepcion.motivo, 80), t: num(raw.excepcion.t), trasFallo: raw.excepcion.trasFallo === true } : null,
+      reconocida: raw.reconocida === true ? true : raw.reconocida === false ? false : null,
+      retiro: null, alertas: [], historial: [], simulada: raw.simulada === true
+    };
+    if (isObj(raw.retiro)) {
+      var q = raw.retiro.quien;
+      r.retiro = { quien: q === 'afiliado' || q === 'familiar' ? q : 'otra', nombre: str(raw.retiro.nombre, 80), farmaciaId: str(raw.retiro.farmaciaId, 40),
+        t: num(raw.retiro.t), cobertura: raw.retiro.cobertura === true, comprobante: str(raw.retiro.comprobante, 20) };
+    }
+    if (Array.isArray(raw.alertas)) r.alertas = raw.alertas.filter(isObj).slice(0, 40).map(function (x) { return { t: num(x.t), tipo: str(x.tipo, 20), txt: str(x.txt, 240) }; });
+    if (Array.isArray(raw.historial)) r.historial = raw.historial.filter(isObj).slice(-60).map(function (x) { return { t: num(x.t), rol: has(ROLES, x.rol) ? x.rol : 'sistema', txt: str(x.txt, 300) }; });
+    return r;
+  }
+  function normAfiliado(raw) {
+    if (!isObj(raw)) return null;
+    var d = isObj(raw.delegado) ? { nombre: str(raw.delegado.nombre, 80), relacion: str(raw.delegado.relacion, 30) } : null;
+    return { delegado: d && d.nombre ? d : null, t: num(raw.t) };
+  }
+  function normRevision(raw) {
+    if (!isObj(raw)) return null;
+    var e = raw.estado === 'sin_fraude' || raw.estado === 'auditoria' ? raw.estado : null;
+    return e ? { estado: e, t: num(raw.t) } : null;
+  }
+  function normConfig(raw) {
+    if (!isObj(raw)) return null;
+    return { modo: raw.modo === 'llegada' ? 'llegada' : 'consulta', t: num(raw.t), medicoFace: raw.medicoFace !== false, tm: num(raw.tm) };
+  }
+  function normLlegada(raw) {
+    if (!isObj(raw) || !has(LLEGADA, raw.estado)) return null;
+    var ev = Array.isArray(raw.eventos) ? raw.eventos.filter(isObj).slice(-20).map(function (x) { return { t: num(x.t), rol: has(ROLES, x.rol) ? x.rol : 'sistema', txt: str(x.txt, 300) }; }) : [];
+    var ahora = Date.now();
+    return { estado: raw.estado, t: Math.min(num(raw.t), ahora), validada: Math.min(num(raw.validada), ahora), fallos: Math.max(0, Math.min(99, Math.floor(num(raw.fallos)))), eventos: ev };
+  }
+  function normAll(src) {
+    var out = { recetas: Object.create(null), afiliados: Object.create(null), revisiones: Object.create(null), config: Object.create(null), llegadas: Object.create(null) };
+    if (!isObj(src)) return out;
+    [['recetas', normReceta], ['afiliados', normAfiliado], ['revisiones', normRevision], ['config', normConfig], ['llegadas', normLlegada]].forEach(function (p) {
+      var col = src[p[0]];
+      if (!isObj(col)) return;
+      Object.keys(col).forEach(function (k) { var v = p[1](col[k], k); if (v) out[p[0]][k] = v; });
+    });
+    return out;
+  }
+
+  /* ================= almacén compartido ================= */
+  var Store = (function () {
+    var COLS = ['recetas', 'afiliados', 'revisiones', 'config', 'llegadas'];
+    function vacio() { return { recetas: Object.create(null), afiliados: Object.create(null), revisiones: Object.create(null), config: Object.create(null), llegadas: Object.create(null) }; }
+    var state = vacio();
+    var listeners = [], mode = 'pending', db = null, bc = null, unsubs = [], retries = 0, primed = {}, liveGen = 0;
+    // Lotes (actividad de ejemplo, reinicio): lo que todavía no llegó a la base se superpone a lo que manda la base,
+    // así la pantalla no muestra estados intermedios mientras se escribe documento por documento.
+    var server = vacio(), hold = vacio(), gen = 0;
+    function view(col) {
+      var v = Object.create(null), k;
+      for (k in server[col]) v[k] = server[col][k];
+      for (k in hold[col]) { if (hold[col][k]) v[k] = hold[col][k]; else delete v[k]; }
+      return v;
+    }
+    var LS = 'huella-clinica-demo-v2';
+    var decide, ready = new Promise(function (r) { decide = r; });
+
+    function emit(changed) { for (var i = 0; i < listeners.length; i++) { try { listeners[i](changed || []); } catch (e) { console.error(e); } } }
+    function setStatus(m, text) {
+      var el = document.getElementById('sync'), tx = document.getElementById('sync-text');
+      if (el) el.setAttribute('data-mode', m);
+      if (tx) tx.innerHTML = text;
+    }
+    function loadLocal() {
+      try { var raw = localStorage.getItem(LS); if (raw) state = normAll(JSON.parse(raw)); } catch (e) { /* sin almacenamiento: queda en memoria */ }
+    }
+    function saveLocal(changed) {
+      try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {}
+      try { if (bc) bc.postMessage({ changed: changed || [], state: state }); } catch (e) {}
+    }
+    function diff(prev, next) {
+      var out = [];
+      Object.keys(next).forEach(function (k) { if (!prev[k] || prev[k].actualizada !== next[k].actualizada) out.push(k); });
+      Object.keys(prev).forEach(function (k) { if (!next[k]) out.push(k); });
+      return out;
+    }
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function failText(code) {
+      if (code === 'quota_exceeded') return 'La demo compartida se llenó. Reiniciala desde Obra social › Simulador.';
+      if (code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') return 'Se cortó la conexión con la demo compartida. Recargá la página.';
+      return 'No se pudo guardar. Probá de nuevo.';
+    }
+    var FINAL = { invalid_argument: 1, transform_error: 1, quota_exceeded: 1, revoked: 1, not_granted: 1, capability_disabled: 1, capability_removed: 1, resource_exhausted: 1 };
+    // Una escritura en la base: si el problema es pasajero, reintenta una vez tras una pausa corta.
+    async function dbWrite(fn) {
+      try { await fn(); return true; }
+      catch (e) {
+        var code = e && e.code;
+        if (!has(FINAL, code)) {
+          await wait(400 + Math.random() * 700);
+          try { await fn(); return true; } catch (e2) { code = e2 && e2.code; }
+        }
+        toast(failText(code), 'bad');
+        return false;
+      }
+    }
+    async function inSeries(tasks) {
+      for (var i = 0; i < tasks.length; i++) { if (!(await dbWrite(tasks[i]))) return false; }
+      return true;
+    }
+    function lost() { setStatus('local', 'Sin conexión · recargá<span class="long"> la página</span>'); }
+    function onListenError(e) {
+      var code = e && e.code;
+      if ((code === 'unavailable' || !code) && retries < 4) {
+        retries++;
+        setStatus('local', 'Reconectando…');
+        unsubs.forEach(function (u) { try { u(); } catch (x) {} }); unsubs = [];
+        setTimeout(watchLive, 1000 * retries + Math.random() * 800);
+        return;
+      }
+      lost();
+    }
+    function collect(snap, norm) {
+      var next = Object.create(null);
+      snap.docs.forEach(function (d) { if (!d.exists) return; var v = norm(d.data(), d.id); if (v) next[d.id] = v; });
+      return next;
+    }
+    function same(a, b) { try { return JSON.stringify(a) === JSON.stringify(b); } catch (e) { return false; } }
+    function refresh(col) {
+      var next = view(col), first = !primed[col];
+      primed[col] = true;
+      if (col === 'recetas') {
+        var ch = diff(state.recetas, next);
+        state.recetas = next;
+        if (first) emit([]); else if (ch.length) emit(ch);
+        return;
+      }
+      if (!first && same(next, state[col])) return;
+      state[col] = next; emit([col]);
+    }
+    function watchLive() {
+      // Un corte cuenta una sola vez aunque se caigan todas las suscripciones juntas.
+      var g = ++liveGen;
+      function sub(col, apply) {
+        try {
+          unsubs.push(db.collection(col).onSnapshot(function (snap) {
+            if (g !== liveGen) return;
+            if (retries) { retries = 0; document.documentElement.setAttribute('data-sync', 'live'); setStatus('live', 'En vivo<span class="long"> · lo que hace uno lo ven todos</span>'); }
+            apply(snap);
+          }, function (e) { if (g !== liveGen) return; liveGen++; onListenError(e); }));
+        } catch (e) { lost(); }
+      }
+      sub('recetas', function (snap) { server.recetas = collect(snap, normReceta); refresh('recetas'); });
+      sub('afiliados', function (snap) { server.afiliados = collect(snap, normAfiliado); refresh('afiliados'); });
+      sub('revisiones', function (snap) { server.revisiones = collect(snap, normRevision); refresh('revisiones'); });
+      sub('config', function (snap) { server.config = collect(snap, normConfig); refresh('config'); });
+      sub('llegadas', function (snap) { server.llegadas = collect(snap, normLlegada); refresh('llegadas'); });
+    }
+    function startLocal() {
+      mode = 'local';
+      loadLocal();
+      try {
+        bc = new BroadcastChannel('huella-clinica-demo-v2');
+        bc.onmessage = function (ev) {
+          var d = ev.data || {};
+          if (isObj(d.state)) state = normAll(d.state); else loadLocal();
+          emit(Array.isArray(d.changed) ? d.changed : []);
+        };
+      } catch (e) { bc = null; }
+      window.addEventListener('storage', function (e) { if (e.key !== LS) return; loadLocal(); emit([]); });
+      document.documentElement.setAttribute('data-sync', 'local');
+      setStatus('local', 'Solo este dispositivo<span class="long"> · se sincroniza entre pestañas de este navegador</span>');
+      emit([]);
+    }
+    async function init() {
+      var c = window.claude;
+      if (c && typeof c.use === 'function') {
+        setStatus('local', 'Conectando…');
+        try { db = await c.use('db'); } catch (e) { db = null; }
+      }
+      if (db) {
+        mode = 'live';
+        document.documentElement.setAttribute('data-sync', 'live');
+        setStatus('live', 'En vivo<span class="long"> · lo que hace uno lo ven todos</span>');
+        watchLive();
+      } else startLocal();
+      decide();
+    }
+    function path(col, id) { return col + '/' + id; }
+    // Escribe un documento. Hasta saber si hay base compartida, la escritura espera.
+    function put(col, id, data, changed) {
+      if (mode === 'pending') return ready.then(function () { return put(col, id, data, changed); });
+      var prev = has(state[col], id) ? state[col][id] : null;
+      // Si un reinicio todavía está borrando este documento, la escritura nueva gana.
+      if (has(hold[col], id) && hold[col][id] === null) delete hold[col][id];
+      state[col][id] = data;
+      emit(changed);
+      if (mode !== 'live') { saveLocal(changed); return Promise.resolve(true); }
+      return dbWrite(function () { return db.doc(path(col, id)).set(data); }).then(function (ok) {
+        if (!ok && state[col][id] === data) { if (prev) state[col][id] = prev; else delete state[col][id]; emit(changed); }
+        return ok;
+      });
+    }
+    function writeReceta(id, data) { data.actualizada = Date.now(); return put('recetas', id, data, [id]); }
+    function writeAfiliado(key, data) { return put('afiliados', key, data, ['afiliados']); }
+    function writeConfig(data) { return put('config', 'validacion', data, ['config']); }
+    function writeLlegada(key, data) { return put('llegadas', key, data, ['llegadas']); }
+    function writeRevision(key, data) {
+      if (mode === 'pending') return ready.then(function () { return writeRevision(key, data); });
+      if (data) return put('revisiones', key, data, ['revisiones']);
+      delete state.revisiones[key]; emit(['revisiones']);
+      if (mode === 'live') return dbWrite(function () { return db.doc(path('revisiones', key)).delete(); });
+      saveLocal(['revisiones']); return Promise.resolve(true);
+    }
+    function writeMany(list) {
+      if (mode === 'pending') return ready.then(function () { return writeMany(list); });
+      var ids = list.map(function (r) { state.recetas[r.id] = r; return r.id; });
+      emit(ids);
+      if (mode !== 'live') { saveLocal(ids); return Promise.resolve(true); }
+      var g = gen;
+      list.forEach(function (r) { hold.recetas[r.id] = r; });
+      return (async function () {
+        var ok = true;
+        for (var i = 0; i < list.length && ok; i++) {
+          if (g !== gen) break;
+          var doc = list[i];
+          ok = await dbWrite(function () { return db.doc(path('recetas', doc.id)).set(doc); });
+          if (hold.recetas[doc.id] === doc) delete hold.recetas[doc.id];
+        }
+        list.forEach(function (x) { if (hold.recetas[x.id] === x) delete hold.recetas[x.id]; });
+        refresh('recetas');
+        return ok;
+      })();
+    }
+    function reset() {
+      if (mode === 'pending') return ready.then(reset);
+      var old = state, ids = Object.keys(old.recetas);
+      state = vacio();
+      emit(ids.concat(['afiliados', 'revisiones', 'config', 'llegadas']));
+      if (mode !== 'live') { saveLocal(ids); return Promise.resolve(true); }
+      gen++;
+      var cola = [];
+      COLS.forEach(function (col) {
+        var keys = Object.create(null);
+        Object.keys(old[col]).concat(Object.keys(server[col]), Object.keys(hold[col])).forEach(function (id) { keys[id] = 1; });
+        Object.keys(keys).forEach(function (id) { hold[col][id] = null; cola.push([col, id]); });
+      });
+      return (async function () {
+        var ok = true;
+        for (var i = 0; i < cola.length && ok; i++) {
+          var c = cola[i][0], id = cola[i][1];
+          if (hold[c][id] !== null) continue;
+          ok = await dbWrite(function () { return db.doc(path(c, id)).delete(); });
+          if (hold[c][id] === null) delete hold[c][id];
+        }
+        cola.forEach(function (x) { if (hold[x[0]][x[1]] === null) delete hold[x[0]][x[1]]; });
+        COLS.forEach(refresh);
+        return ok;
+      })();
+    }
+    return {
+      init: init,
+      on: function (fn) { listeners.push(fn); },
+      recetas: function () { return Object.keys(state.recetas).map(function (k) { return state.recetas[k]; }).sort(function (a, b) { return (b.creada || 0) - (a.creada || 0); }); },
+      receta: function (id) { return has(state.recetas, id) ? clone(state.recetas[id]) : null; },
+      delegado: function (key) { var d = has(state.afiliados, key) ? state.afiliados[key] : null; return d && d.delegado ? d.delegado : null; },
+      revision: function (key) { return has(state.revisiones, key) ? state.revisiones[key] : null; },
+      config: function () { return has(state.config, 'validacion') ? state.config.validacion.modo : 'consulta'; },
+      configT: function () { return has(state.config, 'validacion') ? state.config.validacion.t : 0; },
+      // La obra social decide si el médico firma con su Face ID (por defecto, sí) o con usuario y clave.
+      medicoFace: function () { return has(state.config, 'validacion') ? state.config.validacion.medicoFace : true; },
+      configTm: function () { return has(state.config, 'validacion') ? state.config.validacion.tm : 0; },
+      llegada: function (key) { return has(state.llegadas, key) ? state.llegadas[key] : null; },
+      llegadas: function () { return state.llegadas; },
+      writeConfig: writeConfig, writeLlegada: writeLlegada,
+      writeReceta: writeReceta, writeAfiliado: writeAfiliado, writeRevision: writeRevision, writeMany: writeMany, reset: reset,
+      mode: function () { return mode; }
+    };
+  })();
+
+  /* ================= validación al llegar ================= */
+  function enModoLlegada() { return Store.config() === 'llegada'; }
+  function turno(afKey) { for (var i = 0; i < AGENDA.length; i++) if (AGENDA[i].af === afKey) return AGENDA[i]; return null; }
+  // La llegada validada habilita al médico a emitir durante unas horas, sin pedir otro Face ID.
+  function tokenValido(afKey) { var l = Store.llegada(afKey); return !!l && l.estado === 'validada' && Date.now() - l.validada < TOKEN_HORAS * 3600 * 1000; }
+  function tokenHasta(afKey) { var l = Store.llegada(afKey); return l ? l.validada + TOKEN_HORAS * 3600 * 1000 : 0; }
+  // Si el médico ya pidió el Face ID en la consulta, ese pedido manda: no se ofrece validar la llegada en paralelo.
+  function rxPend(afKey) { return Store.recetas().some(function (r) { return r.afiliado === afKey && r.estado === 'esperando'; }); }
+  function esOS(afKey) { var tu = turno(afKey); return !!tu && tu.tipo === 'os'; }
+
+  /* ================= acciones (lo que cambia la receta) ================= */
+  // Dos pasos en el mismo milisegundo se separan, para que los feeds los muestren en orden.
+  function logAt(r, t, rol, txt) {
+    var h = r.historial || [];
+    if (h.length && h[h.length - 1].t >= t) t = h[h.length - 1].t + 1;
+    r.historial = h.concat([{ t: t, rol: rol, txt: txt }]);
+  }
+  function log(r, rol, txt) { logAt(r, Date.now(), rol, txt); }
+  function alertaAt(r, t, tipo, txt) { r.alertas = (r.alertas || []).concat([{ t: t, tipo: tipo, txt: txt }]); }
+  function alerta(r, tipo, txt) { alertaAt(r, Date.now(), tipo, txt); }
+  function comprobante() { return 'C-' + Math.floor(100000 + Math.random() * 900000); }
+  function nuevaReceta(id, afKey, medId, medicoId, t) {
+    var m = med(medId);
+    return { id: id, afiliado: afKey, med: medId, cie: m.cie, medicoId: medicoId, estado: 'esperando', creada: t, actualizada: t, vence: t + VIGENCIA,
+      firma: null, consulta: null, excepcion: null, reconocida: null, retiro: null, alertas: [], historial: [] };
+  }
+  // Registra la dispensa en la receta (también la usa la actividad de ejemplo).
+  function aplicarRetiro(r, quien, nombreRetira, relacion, farmaciaId, t) {
+    var a = af(r.afiliado), m = med(r.med), f = farmacia(farmaciaId), c = comprobante();
+    if (quien === 'afiliado') {
+      r.estado = 'dispensada';
+      r.retiro = { quien: 'afiliado', nombre: a.nombre, farmaciaId: farmaciaId, t: t, cobertura: true, comprobante: c };
+      logAt(r, t, 'farmacia', f.nombre + ': Face ID coincide con ' + a.nombre + '. Dispensó ' + m.nombre + ' con ' + m.cob + '% de cobertura. Comprobante ' + c + '.');
+      // Si la receta salió con excepción y la retira el titular con su propia cara, ya no hace falta preguntarle si la reconoce.
+      if (r.excepcion && r.reconocida === null) { r.reconocida = true; logAt(r, t, 'sistema', a.nombre + ' retiró la receta con su propio Face ID: queda reconocida.'); }
+    } else if (quien === 'familiar') {
+      r.estado = 'dispensada_alerta';
+      r.retiro = { quien: 'familiar', nombre: nombreRetira + ' (' + relacion + ')', farmaciaId: farmaciaId, t: t, cobertura: true, comprobante: c };
+      alertaAt(r, t, 'familiar', 'Retiró ' + nombreRetira + ' (' + relacion + '), familiar con autorización de ' + a.corto + '.');
+      logAt(r, t, 'farmacia', f.nombre + ': retiró ' + nombreRetira + ' (' + relacion + ') con su propio Face ID. Dispensada con alerta. Comprobante ' + c + '.');
+    } else {
+      r.estado = 'sin_cobertura';
+      r.retiro = { quien: 'otra', nombre: nombreRetira, farmaciaId: farmaciaId, t: t, cobertura: false, comprobante: c };
+      alertaAt(r, t, 'tercero', nombreRetira + ' se validó con su DNI pero no tiene autorización de ' + a.corto + ': se dispensó sin cobertura.');
+      logAt(r, t, 'farmacia', f.nombre + ': retiró ' + nombreRetira + ', sin autorización de ' + a.corto + '. Se dispensó sin cobertura. Comprobante ' + c + '.');
+    }
+  }
+
+  var Acciones = {
+    // Con Face ID del médico, si quien está en la computadora no es el titular de la matrícula, la receta se bloquea.
+    // Sin Face ID del médico (usuario y clave), el sistema no puede saber quién firmó: la receta sale igual.
+    crear: function (afKey, medId, firmante, conFace) {
+      var a = af(afKey), m = med(medId), now = Date.now(), r = nuevaReceta(nuevoCodigo(), afKey, medId, MEDICO_ID, now);
+      if (typeof conFace !== 'boolean') conFace = Store.medicoFace();
+      var como = conFace ? 'firmó con su Face ID' : 'firmó con usuario y clave';
+      if (firmante === 'medico' || !conFace) {
+        r.firma = { t: now, via: conFace ? 'face' : 'clave' };
+        if (enModoLlegada() && tokenValido(afKey)) {
+          var lg = Store.llegada(afKey);
+          r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: lg.validada, via: 'llegada' };
+          log(r, 'medico', cap(elDr(MEDICO)) + ' (' + MEDICO.matricula + ') ' + como + ' la receta de ' + m.nombre + ' para ' + a.nombre + '.');
+          log(r, 'sistema', a.nombre + ' validó su llegada a las ' + hora(lg.validada) + ': la receta ' + r.id + ' se emitió con CUIR sin pedir otro Face ID y llegó a la app de ' + a.corto + '.');
+        } else {
+          log(r, 'medico', cap(elDr(MEDICO)) + ' (' + MEDICO.matricula + ') ' + como + ' y pidió el Face ID de ' + a.nombre + ' para ' + m.nombre + '.');
+          if (enModoLlegada()) log(r, 'sistema', 'Sin llegada validada' + (turno(afKey) && turno(afKey).tipo === 'particular' ? ' (se atiende como particular)' : '') + ': el Face ID de ' + a.corto + ' se pide en la consulta.');
+        }
+      } else {
+        r.estado = 'firma_rechazada';
+        alerta(r, 'firma', 'Intento de firma con la matrícula ' + MEDICO.matricula + ': la cara no es la del titular.');
+        log(r, 'medico', 'Firma rechazada: quien intentó firmar con la matrícula ' + delDr(MEDICO) + ' no es el titular. La receta quedó bloqueada.');
+      }
+      marcarMia(r.id);
+      Store.writeReceta(r.id, r);
+      return r.id;
+    },
+    validarConsulta: function (id, coincide) {
+      var r = Store.receta(id); if (!r || r.estado !== 'esperando') return false;
+      var a = af(r.afiliado);
+      if (coincide) {
+        r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: Date.now() };
+        log(r, 'paciente', 'Face ID en la consulta: coincide con ' + a.nombre + '.');
+        log(r, 'sistema', 'Receta ' + r.id + ' emitida con CUIR y enviada a la app de ' + a.corto + '.');
+      } else {
+        r.estado = 'no_coincide'; r.consulta = { resultado: 'fail', t: Date.now() };
+        log(r, 'paciente', 'Face ID en la consulta: la cara no coincide con ' + a.nombre + '.');
+      }
+      Store.writeReceta(id, r);
+      return true;
+    },
+    excepcion: function (id, motivo) {
+      var r = Store.receta(id); if (!r || (r.estado !== 'esperando' && r.estado !== 'no_coincide')) return false;
+      var a = af(r.afiliado), d = medico(r.medicoId), tras = r.estado === 'no_coincide';
+      r.estado = 'emitida_alerta'; r.excepcion = { motivo: motivo, t: Date.now(), trasFallo: tras };
+      if (tras) alerta(r, 'exc_no_coincide', 'Emitida con excepción después de que el Face ID no coincidiera con ' + a.nombre + ' (motivo: «' + motivo + '»).');
+      else alerta(r, 'excepcion', 'Emitida sin Face ID del paciente (motivo: «' + motivo + '»).');
+      log(r, 'medico', cap(elDr(d)) + ' emitió la receta con excepción justificada («' + motivo + '»).');
+      log(r, 'sistema', 'Aviso enviado a la app de ' + a.corto + ' para que confirme si reconoce la receta.');
+      Store.writeReceta(id, r);
+      return true;
+    },
+    modo: function (m) { Store.writeConfig({ modo: m === 'llegada' ? 'llegada' : 'consulta', t: Date.now(), medicoFace: Store.medicoFace(), tm: Store.configTm() }); },
+    faceMedico: function (on) { Store.writeConfig({ modo: Store.config(), t: Store.configT(), medicoFace: !!on, tm: Date.now() }); },
+    // La recepción pide el Face ID de llegada; el paciente lo recibe en la app.
+    pedirLlegada: function (afKey) {
+      var tu = turno(afKey), prev = Store.llegada(afKey);
+      if (!tu || tu.tipo !== 'os' || !enModoLlegada() || rxPend(afKey)) return false;
+      if (prev && (prev.estado === 'esperando' || tokenValido(afKey))) return false;
+      var now = Date.now(), a = af(afKey);
+      var ev = (prev ? prev.eventos : []).concat([{ t: now, rol: 'recepcion', txt: 'Recepción pidió el Face ID de llegada de ' + a.nombre + ' (turno de hoy con ' + elDr(MEDICO) + ').' }]);
+      Store.writeLlegada(afKey, { estado: 'esperando', t: now, validada: 0, fallos: prev ? prev.fallos : 0, eventos: ev });
+      return true;
+    },
+    // El paciente valida su llegada desde la app (se lo pida o no la recepción).
+    validarLlegada: function (afKey, coincide) {
+      var tu = turno(afKey), prev = Store.llegada(afKey);
+      if (!tu || tu.tipo !== 'os' || !enModoLlegada() || tokenValido(afKey) || rxPend(afKey)) return false;
+      var now = Date.now(), a = af(afKey), ev = (prev ? prev.eventos : []).slice(), fallos = prev ? prev.fallos : 0;
+      if (coincide) ev.push({ t: now, rol: 'paciente', txt: 'Face ID de llegada: coincide con ' + a.nombre + '. ' + hastaLas(now + TOKEN_HORAS * 3600e3, true) + ', ' + elDr(MEDICO) + ' puede emitir sus recetas de este turno sin pedirle otro Face ID.' });
+      else { fallos++; ev.push({ t: now, rol: 'paciente', txt: 'Face ID de llegada: la cara no coincide con ' + a.nombre + '. Si le hacen una receta, el Face ID se pide en la consulta.' }); }
+      Store.writeLlegada(afKey, { estado: coincide ? 'validada' : 'no_coincide', t: now, validada: coincide ? now : 0, fallos: fallos, eventos: ev.slice(-20) });
+      return true;
+    },
+    noEmitir: function (id) {
+      var r = Store.receta(id); if (!r || (r.estado !== 'esperando' && r.estado !== 'no_coincide')) return false;
+      r.estado = 'rechazada';
+      log(r, 'medico', cap(elDr(medico(r.medicoId))) + ' decidió no emitir la receta.');
+      Store.writeReceta(id, r);
+      return true;
+    },
+    reconocer: function (id, si) {
+      var r = Store.receta(id); if (!r || !porConfirmar(r)) return false;
+      var a = af(r.afiliado);
+      if (si) {
+        r.reconocida = true;
+        log(r, 'paciente', a.nombre + ' confirmó desde la app que reconoce la receta.');
+      } else if (r.retiro) {
+        r.reconocida = false;
+        alerta(r, 'desconocida', a.nombre + ' no reconoce una receta emitida con excepción que ya se retiró.');
+        log(r, 'paciente', a.nombre + ' no reconoce la receta, que ya se había retirado en la farmacia.');
+      } else {
+        r.reconocida = false; r.estado = 'anulada';
+        alerta(r, 'desconocida', a.nombre + ' no reconoce la receta emitida con excepción. Quedó anulada.');
+        log(r, 'paciente', a.nombre + ' no reconoce la receta: quedó anulada y no se puede dispensar.');
+      }
+      Store.writeReceta(id, r);
+      return true;
+    },
+    dispensar: function (id, quien) {
+      var r = Store.receta(id); if (!dispensable(r)) return false;
+      if (quien === 'familiar') {
+        var fam = Store.delegado(r.afiliado);
+        if (!fam) return false;
+        aplicarRetiro(r, 'familiar', fam.nombre, fam.relacion, FARMACIA_ID, Date.now());
+      } else if (quien === 'afiliado') aplicarRetiro(r, 'afiliado', '', '', FARMACIA_ID, Date.now());
+      else aplicarRetiro(r, 'otra', TERCERO.nombre, '', FARMACIA_ID, Date.now());
+      Store.writeReceta(id, r);
+      return true;
+    },
+    delegar: function (afKey, on) {
+      var a = af(afKey);
+      if (on && !a.familiar) return;
+      Store.writeAfiliado(afKey, { delegado: on ? { nombre: a.familiar.nombre, relacion: a.familiar.relacion } : null, t: Date.now() });
+    },
+    revisar: function (key, estado) { Store.writeRevision(key, estado ? { estado: estado, t: Date.now() } : null); },
+    // Actividad de otros médicos y farmacias, para que el tablero tenga patrones que mostrar.
+    // Los códigos son fijos (RX-EJA, RX-EJB…): volver a cargarla reemplaza la anterior en lugar de duplicarla.
+    simular: function () {
+      var now = Date.now(), M = 60 * 1000, list = [], LETRAS = 'ABCDEFGHIJKLMNOP';
+      function mk(o) {
+        var t = now - o.hace * M, r = nuevaReceta('RX-EJ' + LETRAS.charAt(list.length), o.af, o.med, o.dr, t), a = af(o.af), m = med(o.med), d = medico(o.dr);
+        r.simulada = true; r.firma = { t: t, via: 'face' };
+        if (o.exc) {
+          // Con excepción el médico no pide el Face ID del paciente: firma, emite y le llega el aviso al afiliado.
+          r.estado = 'emitida_alerta'; r.excepcion = { motivo: o.exc, t: t, trasFallo: false };
+          logAt(r, t, 'medico', cap(elDr(d)) + ' (' + d.matricula + ') firmó con su Face ID y emitió la receta de ' + m.nombre + ' para ' + a.nombre + ' con excepción («' + o.exc + '»).');
+          alertaAt(r, t, 'excepcion', 'Emitida sin Face ID del paciente (motivo: «' + o.exc + '»).');
+          logAt(r, t, 'sistema', 'Aviso enviado a la app de ' + a.corto + ' para que confirme si reconoce la receta.');
+          r.actualizada = t;
+        } else {
+          logAt(r, t, 'medico', cap(elDr(d)) + ' (' + d.matricula + ') firmó con su Face ID y pidió el Face ID de ' + a.nombre + ' para ' + m.nombre + '.');
+          r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: t + M };
+          logAt(r, t + M, 'paciente', 'Face ID en la consulta: coincide con ' + a.nombre + '.');
+          logAt(r, t + M, 'sistema', 'Receta ' + r.id + ' emitida con CUIR y enviada a la app de ' + a.corto + '.');
+          r.actualizada = t + M;
+        }
+        if (o.ret) {
+          var tr = t + o.ret.en * M;
+          aplicarRetiro(r, o.ret.quien, o.ret.quien === 'otra' ? TERCERO.nombre : '', '', o.ret.f, tr);
+          r.actualizada = tr;
+        }
+        if (o.noRec) {
+          var tn = r.actualizada + 20 * M;
+          r.reconocida = false;
+          alertaAt(r, tn, 'desconocida', a.nombre + ' no reconoce una receta emitida con excepción que ya se retiró.');
+          logAt(r, tn, 'paciente', a.nombre + ' no reconoce la receta, que ya se había retirado en la farmacia.');
+          r.actualizada = tn;
+        }
+        list.push(r);
+      }
+      var POSTRADO = 'Paciente postrado (visita a domicilio)';
+      // Dra. Méndez: muchas recetas en poco tiempo y muchas excepciones.
+      mk({ dr: 'mendez', af: 'hugo', med: 'insul', hace: 170, exc: POSTRADO, ret: { quien: 'otra', f: 'puente', en: 25 }, noRec: true });
+      mk({ dr: 'mendez', af: 'elena', med: 'insul', hace: 164, exc: POSTRADO, ret: { quien: 'otra', f: 'puente', en: 30 } });
+      mk({ dr: 'mendez', af: 'raul', med: 'insul', hace: 158, exc: 'Paciente internado', ret: { quien: 'otra', f: 'puente', en: 33 } });
+      mk({ dr: 'mendez', af: 'mario', med: 'insul', hace: 151, ret: { quien: 'afiliado', f: 'puente', en: 40 } });
+      mk({ dr: 'mendez', af: 'sofia', med: 'insul', hace: 145, exc: 'Sin celular en la consulta', ret: { quien: 'afiliado', f: 'puente', en: 50 } });
+      mk({ dr: 'mendez', af: 'hugo', med: 'enala', hace: 139, ret: { quien: 'afiliado', f: 'puente', en: 60 } });
+      mk({ dr: 'mendez', af: 'elena', med: 'atorva', hace: 132 });
+      // Actividad normal de referencia.
+      mk({ dr: 'paz', af: 'mario', med: 'enala', hace: 150, ret: { quien: 'afiliado', f: 'central', en: 45 } });
+      mk({ dr: 'paz', af: 'sofia', med: 'atorva', hace: 95, ret: { quien: 'afiliado', f: 'central', en: 30 } });
+      mk({ dr: 'paz', af: 'raul', med: 'enala', hace: 40 });
+      mk({ dr: 'paz', af: 'ana', med: 'enala', hace: 120, ret: { quien: 'afiliado', f: 'central', en: 70 } });
+      Store.writeMany(list);
+      return list.length;
+    }
+  };
+
+  /* ================= patrones para revisar (motor de reglas + IA, simulado) ================= */
+  function senales(all, llegadas) {
+    var out = [];
+    var HORA = 3600 * 1000;
+    Object.keys(MEDICOS).forEach(function (id) {
+      var d = MEDICOS[id], mias = all.filter(function (r) { return r.medicoId === id && r.firma; });
+      var fr = all.filter(function (r) { return r.medicoId === id && r.estado === 'firma_rechazada'; }).length;
+      if (fr) out.push({ key: 'med-firma-' + id, tipo: 'Médico', titulo: d.nombre + ' · alguien intentó usar su matrícula', detalle: (fr === 1 ? 'Un intento bloqueado' : fr + ' intentos bloqueados') + ': la cara no era la del titular. Conviene avisarle al médico.', nivel: 'alta' });
+      var tf = mias.filter(function (r) { return r.excepcion && r.excepcion.trasFallo; }).length;
+      if (tf) out.push({ key: 'med-tras-' + id, tipo: 'Médico', titulo: d.nombre + ' · excepción después de un Face ID fallido', detalle: 'Emitió ' + tf + (tf === 1 ? ' receta' : ' recetas') + ' con excepción aunque la cara no coincidía. Puede tener explicación: revisá el motivo.', nivel: 'media' });
+      var base = mias.filter(function (r) { return id !== MEDICO_ID || r.simulada; }); /* al médico de la demo lo usan todos los compañeros a la vez */
+      if (!base.length) return;
+      var ts = base.map(function (r) { return r.creada; }).sort(function (x, y) { return x - y; }), max = 0;
+      for (var i = 0, j = 0; i < ts.length; i++) { while (ts[i] - ts[j] > HORA) j++; max = Math.max(max, i - j + 1); }
+      var umbral = Math.max(6, Math.ceil(d.porHora * 3));
+      if (max >= umbral) out.push({ key: 'med-vol-' + id, tipo: 'Médico', titulo: d.nombre + ' · volumen inusual', detalle: max + ' recetas en una hora; su promedio es ' + String(d.porHora).replace('.', ',') + ' por hora.', nivel: 'alta' });
+      var exc = base.filter(function (r) { return r.excepcion; });
+      if (exc.length >= 3 && exc.length / base.length >= 0.3) out.push({ key: 'med-exc-' + id, tipo: 'Médico', titulo: d.nombre + ' · muchas excepciones', detalle: exc.length + ' de ' + base.length + ' recetas emitidas sin Face ID del paciente.', nivel: 'alta' });
+    });
+    function unDr(drs) { var k = Object.keys(drs); return k.length === 1 ? medico(k[0]) : null; }
+    var porFarm = Object.create(null);
+    all.forEach(function (r) {
+      if (!r.retiro || !has(FARMACIAS, r.retiro.farmaciaId)) return;
+      var k = r.retiro.farmaciaId + '|' + med(r.med).id;
+      var p = porFarm[k] = porFarm[k] || { n: 0, drs: Object.create(null) };
+      p.n++; p.drs[r.medicoId] = 1;
+    });
+    Object.keys(porFarm).forEach(function (k) {
+      var p = porFarm[k]; if (p.n < 5) return;
+      var q = k.split('|'), f = farmacia(q[0]), m = med(q[1]), dr = unDr(p.drs);
+      out.push({ key: 'farm-' + q[0] + '-' + m.id, tipo: 'Farmacia', titulo: f.nombre + ' · concentra un medicamento', detalle: p.n + ' dispensas de ' + m.nombre + ' en el día' + (dr ? ', todas de recetas ' + delDr(dr) + '.' : '.'), nivel: 'media' });
+    });
+    var porPersona = Object.create(null);
+    all.forEach(function (r) {
+      if (!r.retiro || r.retiro.quien === 'afiliado' || !r.retiro.nombre) return;
+      var k = slug(r.retiro.nombre.replace(/\s*\(.*\)$/, ''));
+      if (!k) return;
+      var p = porPersona[k] = porPersona[k] || { nombre: r.retiro.nombre.replace(/\s*\(.*\)$/, ''), afs: Object.create(null), drs: Object.create(null), sinAut: 0 };
+      p.afs[r.afiliado] = 1; // afs y drs son mapas sin prototipo
+      p.drs[r.medicoId] = 1;
+      if (r.retiro.quien === 'otra') p.sinAut++;
+    });
+    Object.keys(porPersona).forEach(function (k) {
+      var p = porPersona[k], n = Object.keys(p.afs).length, dr = unDr(p.drs);
+      if (n < 3) return;
+      out.push({ key: 'per-' + k, tipo: 'Persona', titulo: p.nombre + ' · retira para muchos afiliados', detalle: 'Retiró para ' + n + ' afiliados distintos' + (p.sinAut ? ', ' + p.sinAut + ' sin autorización.' : '.') + (dr ? ' Recetas ' + delDr(dr) + '.' : ''), nivel: p.sinAut ? 'alta' : 'media' });
+    });
+    var porAf = Object.create(null);
+    all.forEach(function (r) {
+      // La firma rechazada es del consultorio, no del paciente: no suma a sus alertas.
+      var al = r.alertas.filter(function (x) { return x.tipo !== 'firma'; });
+      if (!al.length) return;
+      var p = porAf[r.afiliado] = porAf[r.afiliado] || { n: 0, last: '', t: 0, r: r, propias: 0 };
+      p.n += al.length;
+      al.forEach(function (x) { if (x.t >= p.t) { p.t = x.t; p.last = x.txt; p.r = r; } if (x.tipo === 'desconocida') p.propias++; });
+    });
+    Object.keys(porAf).forEach(function (k) {
+      if (!has(AFILIADOS, k)) return;
+      var p = porAf[k];
+      // Sin alertas propias (no reconoció una receta, llegada con otra cara), el afiliado es afectado, no sospechoso.
+      var propia = p.propias > 0 || !!(llegadas && has(llegadas, k) && llegadas[k].fallos);
+      out.push({ key: 'af-' + k, tipo: 'Afiliado', titulo: af(k).nombre + ' · ' + p.n + (p.n === 1 ? ' alerta' : ' alertas'), detalle: 'Receta ' + delDr(medico(p.r.medicoId)) + ': ' + p.last, nivel: propia && p.n >= 2 ? 'media' : 'baja' });
+    });
+    if (llegadas) Object.keys(llegadas).forEach(function (k) {
+      var l = llegadas[k];
+      if (!has(AFILIADOS, k) || !l.fallos) return;
+      out.push({ key: 'af-lleg-' + k, tipo: 'Afiliado', titulo: af(k).nombre + ' · llegada con otra cara', detalle: (l.fallos === 1 ? 'Un intento' : l.fallos + ' intentos') + ' de validar la llegada al consultorio con una cara que no es la suya.', nivel: 'media' });
+    });
+    var peso = { alta: 0, media: 1, baja: 2 };
+    return out.sort(function (x, y) { return peso[x.nivel] - peso[y.nivel]; });
+  }
+
+  /* ================= avisos ================= */
+  // En el celular, un aviso a la vez; cada uno dura lo que se tarda en leerlo.
+  function toast(msg, tone) {
+    var host = document.getElementById('toasts'); if (!host) return;
+    var col = { ok: '#4FC48C', warn: '#F2B64A', bad: '#F27A62', info: '#6CB4E0' }[tone || 'ok'];
+    var el = document.createElement('div');
+    el.className = 'toast'; el.style.setProperty('--t', col); el.textContent = msg;
+    host.appendChild(el);
+    var max = 2; try { if (window.matchMedia('(max-width: 760px)').matches) max = 1; } catch (e) {}
+    while (host.children.length > max) host.removeChild(host.firstChild);
+    setTimeout(function () { el.remove(); }, Math.min(9000, Math.max(4000, 1200 + String(msg).length * 45)));
+  }
+
+  /* ================= escaneo de rostro ================= */
+  var REDUCED = false;
+  try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  function faceScan(panelEl, persona, outcome, labels, sub) {
+    return new Promise(function (resolve) {
+      var prev = document.activeElement, ov = document.createElement('div');
+      ov.className = 'scan';
+      ov.innerHTML = '<div class="scan-card"><div class="scan-frame">' + faceSVG(persona) +
+        '<span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br brr"></span><div class="scan-line"></div></div>' +
+        '<p class="msg" role="status">Escaneando rostro…</p><small>' + esc(sub || 'Validación facial contra RENAPER (simulada)') + '</small></div>';
+      // La tarjeta va en la parte del panel que se está viendo (en el celular el panel puede ser más alto que la pantalla).
+      var pr = panelEl.getBoundingClientRect(), vTop = Math.max(pr.top, 0), vBot = Math.min(pr.bottom, window.innerHeight);
+      ov.style.paddingTop = Math.max(18, (vTop + vBot) / 2 - pr.top - 150) + 'px';
+      // Mientras dura el escaneo, el resto del panel no se puede tocar ni recorrer con el teclado.
+      var sibs = Array.prototype.slice.call(panelEl.children);
+      sibs.forEach(function (c) { c.inert = true; });
+      panelEl.appendChild(ov);
+      var card = ov.querySelector('.scan-card'); card.tabIndex = -1;
+      try { card.focus({ preventScroll: true }); } catch (e) {}
+      setTimeout(function () {
+        ov.setAttribute('data-done', outcome);
+        var p = ov.querySelector('.msg'), s = ov.querySelector('small');
+        p.textContent = labels[0]; s.textContent = labels[1];
+        p.style.color = outcome === 'ok' ? 'var(--ok)' : outcome === 'warn' ? 'var(--warn)' : 'var(--bad)';
+        setTimeout(function () {
+          // Si durante el escaneo el usuario pasó con Tab a otra parte de la página, el foco se queda ahí.
+          var ae = document.activeElement, fuera = ae && ae !== document.body && ae !== document.documentElement && !ov.contains(ae) && !panelEl.contains(ae);
+          sibs.forEach(function (c) { c.inert = false; });
+          ov.remove();
+          if (!fuera && prev && prev !== document.body && document.contains(prev)) { try { prev.focus({ preventScroll: true }); } catch (e) {} }
+          resolve();
+        }, 1400);
+      }, REDUCED ? 300 : 1500);
+    });
+  }
+
+  /* ================= paneles ================= */
+  function head(role, title, sub, right) {
+    return '<div class="p-head"><span class="ic">' + ICON[role] + '</span><span class="p-title"><b role="heading" aria-level="2">' + esc(title) + '</b><small>' + esc(sub) + '</small></span>' +
+      (right ? '<span class="right">' + right + '</span>' : '') + '</div>';
+  }
+  function flashRows(root, changed) {
+    if (!changed || !changed.length || typeof CSS === 'undefined' || !CSS.escape) return;
+    changed.forEach(function (id) {
+      root.querySelectorAll('[data-id="' + CSS.escape(id) + '"]').forEach(function (el) {
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      });
+    });
+  }
+  function mk(tone) { return '<span class="mk ' + tone + '">' + (tone === 'ok' ? ICON.check : tone === 'warn' ? ICON.alert : ICON.x) + '</span>'; }
+  function check(tone, title, sub) { return '<div class="check">' + mk(tone) + '<span>' + esc(title) + '<small>' + esc(sub) + '</small></span></div>'; }
+  function seg(label, act, items, current) {
+    return '<div class="seg" role="group" aria-label="' + esc(label) + '">' + items.map(function (it) {
+      return '<button type="button" data-act="' + act + '" data-v="' + esc(it[0]) + '" aria-pressed="' + (it[0] === current) + '"' + (it[2] ? ' disabled title="' + esc(it[2]) + '"' : '') + '>' + esc(it[1]) + '</button>';
+    }).join('') + '</div>';
+  }
+  // Capa «▷ Simulador»: hace de la persona que está frente a la cámara, en la computadora o en el mostrador. No es parte del producto.
+  function simTray(inner) { return '<div class="sim" role="group" aria-label="Simulador de la demo (no es parte del producto)"><span class="sim-tag" aria-hidden="true">▷ Simulador</span>' + inner + '</div>'; }
+  function simQ(l, h) { return '<span class="sim-q"><span class="lbl">' + esc(l) + '</span>' + h + '</span>'; }
+  function purpose(t) { return '<p class="p-purpose">' + esc(t) + '</p>'; }
+  // Cuando una acción reemplaza el botón tocado, el foco pasa al resultado en lugar de perderse en la página.
+  function focusSoon(root, sel) {
+    requestAnimationFrame(function () {
+      var el = root.querySelector(sel); if (!el) return;
+      var ae = document.activeElement;
+      if (ae && ae !== document.body && ae !== document.documentElement && !root.contains(ae)) return;
+      if (!el.matches('button,a,select,input,summary')) el.tabIndex = -1;
+      try { el.focus({ preventScroll: true }); } catch (e) {}
+    });
+  }
+  function revealIn(root, sel) {
+    var el = root.querySelector(sel), body = root.querySelector('.p-body');
+    if (!el) return;
+    if (!body || body.scrollHeight <= body.clientHeight + 1) { try { el.scrollIntoView({ block: 'nearest', behavior: REDUCED ? 'auto' : 'smooth' }); } catch (e) {} return; }
+    var eb = el.getBoundingClientRect(), bb = body.getBoundingClientRect();
+    if (eb.bottom > bb.bottom - 12) body.scrollTo({ top: body.scrollTop + eb.bottom - bb.bottom + 24, behavior: REDUCED ? 'auto' : 'smooth' });
+    else if (eb.top < bb.top) body.scrollTo({ top: body.scrollTop + eb.top - bb.top - 16, behavior: REDUCED ? 'auto' : 'smooth' });
+  }
+
+  /* ---------- médico ---------- */
+  function PanelMedico(root) {
+    var ui = { af: 'rosa', med: 'atorva', actual: null, motivo: MOTIVOS[0], firmante: 'medico', busy: false };
+    root.innerHTML = head('medico', 'Consultorio', MEDICO.nombre + ' · ' + MEDICO.matricula, '<span class="vchip">' + ICON.shield + 'Matrícula verificada · REFEPS</span>') +
+      simTray(simQ('Frente a la computadora', '<span id="m-firmante"></span>')) +
+      '<div class="p-body">' + purpose('El médico arma la receta, la firma y pide el Face ID del paciente.') + '<div id="m-recep" hidden></div><div class="two">' +
+        '<form class="card" id="m-form" novalidate>' +
+          '<div class="card-h"><h3>Nueva receta</h3></div>' +
+          '<div class="form-grid">' +
+            '<label class="field full"><span>Paciente</span><select class="select" id="m-af">' +
+              DEMO_AF.map(function (k) { var a = AFILIADOS[k]; return '<option value="' + k + '">' + esc(a.nombre) + ' · ' + a.edad + ' años</option>'; }).join('') +
+            '</select></label>' +
+            '<label class="field full"><span>Medicamento</span><select class="select" id="m-med">' +
+              MEDS.map(function (m) { return '<option value="' + m.id + '">' + esc(m.nombre) + '</option>'; }).join('') +
+            '</select></label>' +
+          '</div>' +
+          '<div class="facts" id="m-facts"></div>' +
+          '<button class="btn btn-primary btn-block" type="submit" id="m-submit">' + ICON.face + 'Firmar con Face ID</button>' +
+          '<p class="hint" id="m-hint"></p>' +
+        '</form>' +
+        '<div class="stack">' +
+          '<div id="m-live"></div>' +
+          '<div class="card"><div class="card-h"><h3>Mis recetas</h3><span class="sample" id="m-count"></span></div><div class="rows" id="m-list"></div></div>' +
+        '</div>' +
+      '</div></div>';
+    var form = root.querySelector('#m-form'), selAf = root.querySelector('#m-af'), selMed = root.querySelector('#m-med'), facts = root.querySelector('#m-facts');
+    function syncForm() {
+      var m = med(ui.med);
+      facts.innerHTML = '<div><small>Diagnóstico</small><b class="mono">' + esc(m.cie) + '</b><span>' + esc(m.dx) + '</span></div>' +
+        '<div><small>Cobertura</small><b class="num">' + m.cob + '%</b><span>' + esc(m.pres) + '</span></div>';
+      root.querySelector('#m-firmante').innerHTML = seg('Simulador: quién está en la computadora', 'firmante', [['medico', 'Dr. Ruiz (titular)'], ['secretaria', 'Secretaria']], ui.firmante);
+      syncSubmit();
+    }
+    // El botón y la ayuda dicen qué va a pasar al firmar, según la configuración de la obra social.
+    function syncSubmit() {
+      var a = af(ui.af), btn = root.querySelector('#m-submit'), hint = root.querySelector('#m-hint'), tu = turno(ui.af);
+      var directo = enModoLlegada() && tokenValido(ui.af), conFace = Store.medicoFace(), txt, ayuda;
+      if (!conFace) {
+        txt = 'Firmar con usuario y clave';
+        ayuda = 'Tu obra social no pide Face ID al médico. Si firma otra persona con tu clave, el sistema no lo detecta.';
+      } else if (directo) {
+        txt = 'Firmar y emitir';
+        ayuda = a.corto + ' validó su llegada a las ' + hora(Store.llegada(ui.af).validada) + ': la receta sale sin otro Face ID.';
+      } else {
+        txt = 'Firmar con Face ID';
+        ayuda = enModoLlegada() && tu && tu.tipo === 'particular' ? a.corto + ' viene como particular: valida con Face ID en la consulta.'
+          : 'Después de tu firma, a ' + a.corto + ' le llega el pedido de Face ID en la app. La receta sale cuando lo valida.';
+      }
+      if (!ui.busy) btn.innerHTML = (conFace ? ICON.face : ICON.shield) + esc(txt);
+      hint.textContent = ayuda;
+    }
+    function recepcion() {
+      var host = root.querySelector('#m-recep');
+      if (!enModoLlegada()) { host.hidden = true; host.innerHTML = ''; return; }
+      host.hidden = false;
+      host.innerHTML = '<div class="card turnos"><div class="card-h"><h3>Recepción · turnos de hoy</h3><span class="aside">La obra social pide validar la llegada</span></div><div class="rows">' +
+        AGENDA.map(function (tu) {
+          var a = af(tu.af), l = Store.llegada(tu.af), sub = tu.tipo === 'os' ? 'Obra social' : 'Particular (no usa la obra social para la consulta): valida en la consulta', act = '';
+          if (tu.tipo === 'os') {
+            if (tokenValido(tu.af)) act = '<span class="chip t-ok">Validada ' + hora(l.validada) + '</span>';
+            else if (rxPend(tu.af)) sub = 'Obra social · Face ID pedido en la consulta';
+            else if (l && l.estado === 'esperando') act = '<span class="chip t-info">Pedido enviado</span>';
+            else {
+              if (l && l.estado === 'no_coincide') sub = 'Obra social · la cara no coincidió';
+              act = '<button class="btn btn-ghost btn-sm" type="button" data-act="pedir-llegada" data-v="' + tu.af + '">' + (l && l.estado === 'no_coincide' ? 'Reintentar' : 'Pedir Face ID') + '</button>';
+            }
+          }
+          return '<div class="row" data-id="llegada-' + tu.af + '"><span class="who"><b>' + esc(a.nombre) + '</b><small>' + esc(sub) + '</small></span><span class="turno-act">' + act + '</span></div>';
+        }).join('') + '</div></div>';
+    }
+    selAf.value = ui.af; selMed.value = ui.med; syncForm();
+    selAf.addEventListener('change', function () { ui.af = selAf.value; syncSubmit(); });
+    selMed.addEventListener('change', function () { ui.med = selMed.value; syncForm(); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (ui.busy) return;
+      ui.busy = true;
+      var btn = root.querySelector('#m-submit'); btn.setAttribute('aria-disabled', 'true');
+      var esMedico = ui.firmante === 'medico', conFace = Store.medicoFace();
+      // Sin Face ID del médico no hay escaneo: la firma es con usuario y clave, la haga quien la haga.
+      if (!conFace) {
+        ui.actual = Acciones.crear(ui.af, ui.med, ui.firmante, false);
+        var hc = Store.receta(ui.actual), em = hc && hc.estado === 'emitida';
+        toast(!esMedico
+          ? 'La secretaria firmó con la clave del médico: el sistema no lo detecta.' + (em ? ' La receta ya se emitió.' : ' Falta el Face ID de ' + af(ui.af).corto + '.')
+          : em ? 'Firmada con clave y emitida: ' + af(ui.af).corto + ' ya había validado su llegada.' : 'Firmada con clave. Pedido de Face ID enviado al celular de ' + af(ui.af).corto + '.', !esMedico ? 'warn' : em ? 'ok' : 'info');
+        keep(render); revealIn(root, '#m-live');
+        setTimeout(function () { ui.busy = false; btn.removeAttribute('aria-disabled'); syncSubmit(); }, 600);
+        return;
+      }
+      faceScan(root, esMedico ? MEDICO : SECRETARIA, esMedico ? 'ok' : 'bad',
+        esMedico ? ['Firma válida', MEDICO.nombre + ' · ' + MEDICO.matricula] : ['No es el titular de la matrícula', 'La receta no se firma'],
+        'Comparando con el titular de la matrícula')
+        .then(function () {
+          ui.busy = false; btn.removeAttribute('aria-disabled');
+          ui.actual = Acciones.crear(ui.af, ui.med, ui.firmante, true);
+          var hecha = Store.receta(ui.actual);
+          toast(!esMedico ? 'Firma rechazada: no es el titular de la matrícula.' : hecha && hecha.estado === 'emitida' ? 'Firmada y emitida: ' + af(ui.af).corto + ' ya había validado su llegada.' : 'Firmada. Pedido de Face ID enviado al celular de ' + af(ui.af).corto + '.', !esMedico ? 'bad' : hecha && hecha.estado === 'emitida' ? 'ok' : 'info');
+          keep(render); revealIn(root, '#m-live');
+        });
+    });
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]'); if (!b || !root.contains(b) || b.disabled) return;
+      var act = b.getAttribute('data-act'), id = b.getAttribute('data-rx');
+      if (act === 'firmante') { ui.firmante = b.getAttribute('data-v') === 'secretaria' ? 'secretaria' : 'medico'; keep(syncForm); }
+      if (act === 'pedir-llegada') { var k = b.getAttribute('data-v'); if (Acciones.pedirLlegada(k)) toast('Pedido de Face ID de llegada enviado a la app de ' + af(k).corto + '.', 'info'); }
+      if (act === 'excepcion') { var s = root.querySelector('#m-motivo'); if (Acciones.excepcion(id, s ? s.value : MOTIVOS[0])) { toast('Emitida con excepción: queda una alerta y le llega un aviso al paciente.', 'warn'); focusSoon(root, '#m-live h4'); } }
+      if (act === 'no-emitir') { if (Acciones.noEmitir(id)) { toast('La receta no se emitió.', 'bad'); focusSoon(root, '#m-live h4'); } }
+      if (act === 'ver') { ui.actual = id; keep(render); revealIn(root, '#m-live'); }
+    });
+    root.addEventListener('change', function (e) { if (e.target && e.target.id === 'm-motivo') ui.motivo = e.target.value; });
+
+    var lastKey = null;
+    function liveCard(r) {
+      if (!r) return '<div class="empty"><b>Todavía no hay una receta en curso.</b>Elegí paciente y medicamento y firmá ' + (Store.medicoFace() ? 'con tu Face ID' : 'con tu usuario y clave') + '. La receta se emite cuando el paciente valida con Face ID desde el celular.</div>';
+      var a = af(r.afiliado), m = med(r.med), title = '', body = '', icon = '', extra = '';
+      var lista = r.estado === 'no_coincide' ? MOTIVOS_TRAS_FALLO : MOTIVOS, mkey = r.id + '|' + r.estado;
+      if (ui.motivoK !== mkey || lista.indexOf(ui.motivo) < 0) { ui.motivo = lista[0]; ui.motivoK = mkey; }
+      var motivoSel = '<label class="field"><span>Motivo de la excepción</span><select class="select" id="m-motivo">' +
+        lista.map(function (x) { return '<option' + (x === ui.motivo ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></label>';
+      if (r.estado === 'firma_rechazada') {
+        icon = '<span class="badge bad">' + ICON.xL + '</span>'; title = 'Firma rechazada';
+        body = 'Quien intentó firmar no es ' + elDr(MEDICO) + ', titular de la matrícula ' + MEDICO.matricula + '. La receta quedó bloqueada y la obra social recibió una alerta.';
+      } else if (r.estado === 'esperando') {
+        icon = '<span class="pulse">' + ICON.face + '</span>';
+        title = 'Esperando el Face ID de ' + a.nombre;
+        body = 'Le llegó el pedido a su app. La receta se emite cuando valide su identidad.';
+        extra = '<details><summary>¿No puede validar? Emitir con excepción</summary><div class="inline-form">' + motivoSel +
+          '<button class="btn btn-warn" type="button" data-act="excepcion" data-rx="' + esc(r.id) + '">Emitir con excepción</button></div></details>' +
+          '<button class="link" type="button" data-act="no-emitir" data-rx="' + esc(r.id) + '">No emitir la receta</button>';
+      } else if (r.estado === 'no_coincide') {
+        icon = '<span class="badge bad">' + ICON.xL + '</span>';
+        title = 'La cara no coincide con ' + a.nombre;
+        body = 'No se emite, salvo excepción justificada. Si la emitís, queda una alerta para la obra social y el paciente recibe un aviso.';
+        extra = '<div class="inline-form">' + motivoSel + '<button class="btn btn-warn" type="button" data-act="excepcion" data-rx="' + esc(r.id) + '">Emitir con excepción</button>' +
+          '<button class="btn btn-ghost" type="button" data-act="no-emitir" data-rx="' + esc(r.id) + '">No emitir</button></div>';
+      } else if (r.estado === 'emitida' || r.estado === 'emitida_alerta') {
+        var w = r.estado === 'emitida_alerta';
+        icon = '<span class="badge ' + (w ? 'warn' : 'ok') + '">' + (w ? ICON.alertL : ICON.checkL) + '</span>';
+        title = w ? 'Receta emitida con alerta' : 'Receta emitida';
+        body = w ? 'Excepción: ' + (r.excepcion ? r.excepcion.motivo : '') + '. ' + (r.reconocida ? a.corto + ' la reconoció desde la app.' : 'Esperando que ' + a.corto + ' confirme desde la app que la reconoce.')
+          : (r.consulta && r.consulta.via === 'llegada' ? 'Identidad validada al llegar (' + hora(r.consulta.t) + '). ' : 'Identidad validada con Face ID. ') + 'Ya está en la app de ' + a.corto + ' y en la obra social.';
+      } else if (r.estado === 'rechazada') {
+        icon = '<span class="badge bad">' + ICON.xL + '</span>'; title = 'Receta no emitida'; body = 'Quedó registrado el intento.';
+      } else if (r.estado === 'anulada') {
+        icon = '<span class="badge bad">' + ICON.xL + '</span>'; title = 'Receta anulada';
+        body = a.corto + ' no reconoció la receta emitida con excepción. No se puede dispensar y la obra social la tiene para revisar.';
+      } else {
+        var ret = r.retiro || {}, tone = r.estado === 'dispensada' ? 'ok' : r.estado === 'dispensada_alerta' ? 'warn' : 'bad';
+        icon = '<span class="badge ' + tone + '">' + (tone === 'ok' ? ICON.checkL : tone === 'warn' ? ICON.alertL : ICON.xL) + '</span>';
+        title = r.estado === 'sin_cobertura' ? 'Dispensada sin cobertura' : 'Retirada en la farmacia';
+        body = ret.nombre ? 'Retiró ' + ret.nombre + ' en ' + farmacia(ret.farmaciaId).nombre + ' a las ' + hora(ret.t) + '.' : '';
+      }
+      return '<div class="live" data-id="' + esc(r.id) + '"><div class="live-top">' + icon + '<div class="live-txt"><h4>' + esc(title) + '</h4><p>' + esc(body) + '</p></div></div>' +
+        '<div class="live-meta"><span class="code">' + esc(r.id) + '</span>' + chip(r.estado) +
+        '<span class="muted-s">' + esc(m.nombre) + ' · ' + esc(r.cie) + '</span></div>' + extra + '</div>';
+    }
+    var lastValidas = null, lastFallos = null, lastModo = null;
+    function render(changed) {
+      recepcion(); syncSubmit();
+      // Cuando un paciente valida su llegada, el panel muestra el botón de firmar; si falla, o si cambia la configuración, muestra Recepción.
+      var validas = AGENDA.filter(function (tu) { return tokenValido(tu.af); }).length;
+      var fallos = AGENDA.filter(function (tu) { var l = Store.llegada(tu.af); return l && l.estado === 'no_coincide'; }).length;
+      var hay = changed && changed.length;
+      if (hay && enModoLlegada() && changed.indexOf('config') > -1 && lastModo !== null && Store.config() !== lastModo) revealIn(root, '#m-recep');
+      else if (hay && enModoLlegada() && lastFallos !== null && fallos > lastFallos) revealIn(root, '#m-recep');
+      else if (hay && enModoLlegada() && lastValidas !== null && validas > lastValidas) revealIn(root, '#m-submit');
+      lastValidas = validas; lastFallos = fallos; lastModo = Store.config();
+      var mine = Store.recetas().filter(function (r) { return r.medicoId === MEDICO_ID; });
+      if (ui.actual && !mine.some(function (r) { return r.id === ui.actual; })) ui.actual = null;
+      var actual = ui.actual ? mine.filter(function (r) { return r.id === ui.actual; })[0] : mine.filter(function (r) { return !r.simulada; })[0];
+      var liveHost = root.querySelector('#m-live');
+      var det = liveHost.querySelector('details'), openDetails = !!(det && det.open), prevId = liveHost.firstChild && liveHost.firstChild.getAttribute ? liveHost.firstChild.getAttribute('data-id') : null;
+      var focused = document.activeElement && liveHost.contains(document.activeElement) ? document.activeElement.id || document.activeElement.getAttribute('data-act') : null;
+      liveHost.innerHTML = liveCard(actual || null);
+      if (openDetails && actual && prevId === actual.id) { var d = liveHost.querySelector('details'); if (d) d.open = true; }
+      if (focused) { var f = liveHost.querySelector('#' + focused) || liveHost.querySelector('[data-act="' + focused + '"]'); if (f) f.focus(); }
+      var key = actual ? actual.id + '|' + actual.estado : '';
+      if (key && key !== lastKey && lastKey !== null && changed && changed.length) revealIn(root, '#m-live');
+      lastKey = key;
+      root.querySelector('#m-count').textContent = mine.length ? mine.length + (mine.length === 1 ? ' receta' : ' recetas') : '';
+      root.querySelector('#m-list').innerHTML = mine.length ? mine.slice(0, 12).map(function (r) {
+        return rxRow(r, { button: true, act: 'ver', pressed: !!actual && actual.id === r.id });
+      }).join('') : '<div class="empty">Las recetas que firmes aparecen acá con su estado en vivo: vas a ver cuándo el paciente valida y cuándo la farmacia la entrega.</div>';
+      flashRows(root, changed);
+    }
+    return { render: render };
+  }
+
+  /* ---------- paciente ---------- */
+  function PanelPaciente(root) {
+    var ui = { af: 'rosa', camara: 'yo', busy: false }, primera = true;
+    root.innerHTML = head('paciente', 'Mi Obra Social', 'App del afiliado · con Huella Clínica', '<span class="head-tag">' + hora(Date.now()) + '</span>') +
+      simTray(simQ('Celular de', '<span id="p-who"></span>') + simQ('Frente a la cámara', '<span id="p-cam"></span>')) +
+      '<div class="p-body phone-body">' + purpose('Así lo ve el afiliado en la app de su obra social: valida con Face ID, recibe la receta con QR y avisa si algo no es suyo.') + '<div id="p-main" class="stack"></div></div>';
+    function who() { APP_AF = ui.af; root.querySelector('#p-who').innerHTML = seg('Simulador: de quién es el celular', 'ver-af', DEMO_AF.map(function (k) { return [k, AFILIADOS[k].corto]; }), ui.af); }
+    who();
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]'); if (!b || !root.contains(b) || b.disabled) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'ver-af') { var v = b.getAttribute('data-v'); if (DEMO_AF.indexOf(v) > -1) { ui.af = v; seenT = Date.now(); keep(function () { who(); renderAll([]); }); } }
+      if (act === 'camara') { ui.camara = b.getAttribute('data-v') === 'otra' ? 'otra' : 'yo'; keep(render); }
+      if (act === 'escanear' && !ui.busy) {
+        var id = b.getAttribute('data-rx'), a = af(ui.af), yo = ui.camara === 'yo';
+        ui.busy = true;
+        faceScan(root, yo ? a : OTRA_CARA, yo ? 'ok' : 'bad', yo ? ['Rostro reconocido', 'Coincide con ' + a.nombre] : ['No coincide', 'La cara no es la de ' + a.nombre])
+          .then(function () {
+            ui.busy = false; ui.camara = 'yo';
+            if (Acciones.validarConsulta(id, yo)) toast(yo ? 'Validado. La receta se emitió.' : 'La cara no coincide: decide el médico.', yo ? 'ok' : 'bad');
+            else toast('Esta receta ya cambió de estado.', 'info');
+            focusSoon(root, '#p-main .card h4, #p-main .card-h h3');
+          });
+      }
+      if (act === 'escanear-llegada' && !ui.busy) {
+        var ak = ui.af, al = af(ak), yo2 = ui.camara === 'yo';
+        ui.busy = true;
+        faceScan(root, yo2 ? al : OTRA_CARA, yo2 ? 'ok' : 'bad', yo2 ? ['Llegada validada', 'Coincide con ' + al.nombre] : ['No coincide', 'La cara no es la de ' + al.nombre], 'Validación facial · ubicación: en el consultorio')
+          .then(function () {
+            ui.busy = false; ui.camara = 'yo';
+            if (Acciones.validarLlegada(ak, yo2)) toast(yo2 ? 'Llegada validada: ' + hastaLas(tokenHasta(ak)) + ', el Dr. Ruiz puede emitir tus recetas sin pedirte otro Face ID.' : 'La cara no coincide: la llegada no se validó.', yo2 ? 'ok' : 'bad');
+            else toast('La validación de llegada ya cambió.', 'info');
+            focusSoon(root, '#p-main .card h4, #p-main .card-h h3');
+          });
+      }
+      if (act === 'reconocer') {
+        var si = b.getAttribute('data-v') === 'si';
+        var rr = Store.receta(b.getAttribute('data-rx')), yaRetirada = !!(rr && rr.retiro);
+        if (Acciones.reconocer(b.getAttribute('data-rx'), si)) toast(si ? 'Listo: la receta queda confirmada.' : yaRetirada ? 'Registrado: no la reconocés. La obra social lo revisa.' : 'La receta quedó anulada y la obra social lo va a revisar.', si ? 'ok' : 'bad');
+      }
+      if (act === 'delegar') { Acciones.delegar(ui.af, true); toast('Autorizaste a ' + af(ui.af).familiar.nombre + ' a retirar por vos.', 'ok'); }
+      if (act === 'quitar') { Acciones.delegar(ui.af, false); toast('Quitaste la autorización de retiro.', 'info'); }
+    });
+
+    var lastPend = 0;
+    var seenT = 0;
+    function pendiente(r) { return r.estado === 'esperando' || porConfirmar(r); }
+    function llegadaPedida(k) { var l = Store.llegada(k); return enModoLlegada() && esOS(k) && !rxPend(k) && !!l && l.estado === 'esperando'; }
+    function pendienteAf(k) { return llegadaPedida(k) || Store.recetas().some(function (r) { return r.afiliado === k && pendiente(r); }); }
+    function cambiarA(k) { ui.af = k; ui.camara = 'yo'; who(); }
+    function render(changed) {
+      var hh = root.querySelector('.p-head .head-tag'); if (hh) hh.textContent = hora(Date.now());
+      // La app sigue al pedido más nuevo (Face ID de llegada o de receta, o aviso para confirmar) si el afiliado que se ve no tiene nada pendiente.
+      // Mira la hora de cada pedido, no el orden en que llegan los avisos; si el usuario cambia de afiliado a mano, no lo pisa.
+      // Con la base compartida y las 4 pantallas juntas, solo sigue las recetas que firmó esta pestaña.
+      if (!ui.busy) {
+        var cands = [], soloMias = MULTI && Store.mode() === 'live';
+        DEMO_AF.forEach(function (k) { if (llegadaPedida(k)) cands.push({ k: k, t: Store.llegada(k).t }); });
+        Store.recetas().forEach(function (r) { if (pendiente(r) && DEMO_AF.indexOf(r.afiliado) > -1 && (!soloMias || MIAS.indexOf(r.id) > -1)) cands.push({ k: r.afiliado, t: r.actualizada }); });
+        cands.sort(function (x, y) { return y.t - x.t; });
+        // Mientras el afiliado que se ve tenga algo pendiente, no se consume el pedido nuevo: se muestra cuando termine.
+        if (cands.length && cands[0].t > seenT && !(cands[0].k !== ui.af && pendienteAf(ui.af))) {
+          seenT = cands[0].t;
+          if (cands[0].k !== ui.af) { cambiarA(cands[0].k); if (!primera) toast('Te mostramos la app de ' + af(cands[0].k).corto + ': le llegó un pedido.', 'info'); }
+        }
+      }
+      primera = false;
+      var a = af(ui.af), all = Store.recetas().filter(function (r) { return r.afiliado === ui.af && r.estado !== 'firma_rechazada'; });
+      var del = Store.delegado(ui.af), top = '', tu = turno(ui.af), lleg = Store.llegada(ui.af);
+      root.querySelector('#p-cam').innerHTML = seg('Simulador: quién está frente a la cámara', 'camara', [['yo', a.corto], ['otra', 'Otra persona']], ui.camara);
+      // La consulta particular no pasa por la obra social: su app no la muestra.
+      if (enModoLlegada() && tu && tu.tipo === 'os' && (tokenValido(ui.af) || !rxPend(ui.af))) {
+        var conDr = 'Turno de hoy con ' + elDr(MEDICO);
+        if (tokenValido(ui.af)) {
+          top += '<div class="card llegada-ok"><div class="req-top"><span class="badge ok">' + ICON.checkL + '</span><div class="req-txt"><h4>Llegada validada · ' + hora(lleg.validada) + '</h4><p>' + esc(conDr) + '. ' + hastaLas(tokenHasta(ui.af), true) + ' puede emitir tus recetas sin pedirte otro Face ID.</p></div></div></div>';
+        } else {
+          var pedida = lleg && lleg.estado === 'esperando';
+          top += '<div class="card llegada' + (pedida ? ' request' : '') + '" data-id="llegada-' + ui.af + '"><div class="req-top"><span class="pulse pulse-acc">' + ICON.face + '</span>' +
+            '<div class="req-txt"><h4>Validá tu llegada</h4><p>' + esc(conDr) + '. ' + (pedida ? 'La recepción te pide validar tu identidad: así el médico emite tus recetas sin pedirte otro Face ID.' : 'Al llegar al consultorio, validá tu identidad: así el médico emite tus recetas sin pedirte otro Face ID.') + (lleg && lleg.estado === 'no_coincide' ? ' El último intento no coincidió.' : '') + '</p></div></div>' +
+            '<button class="btn btn-primary btn-block" type="button" data-act="escanear-llegada">' + ICON.face + 'Validar llegada con Face ID</button></div>';
+        }
+      }
+      all.filter(function (r) { return r.estado === 'esperando'; }).forEach(function (pend) {
+        var m = med(pend.med);
+        top += '<div class="card request" data-id="' + esc(pend.id) + '"><div class="req-top"><span class="pulse pulse-acc">' + ICON.face + '</span>' +
+          '<div class="req-txt"><h4>Validá tu identidad</h4><p>' + esc(cap(elDr(medico(pend.medicoId)))) + ' quiere emitir tu receta de ' + esc(m.nombre) + '. Validá con Face ID que sos vos para que salga.</p></div></div>' +
+          '<button class="btn btn-primary btn-block" type="button" data-act="escanear" data-rx="' + esc(pend.id) + '">' + ICON.face + 'Validar con Face ID</button></div>';
+      });
+      all.filter(porConfirmar).forEach(function (r) {
+        var m = med(r.med), x = r.excepcion || {};
+        var txt = cap(elDr(medico(r.medicoId))) + ' emitió una receta de ' + m.nombre + ' sin validar tu cara (motivo: «' + (x.motivo || '') + '»).' + (x.trasFallo ? ' Antes, alguien intentó validarla con una cara que no es la tuya.' : '') +
+          (r.retiro ? ' Ya se retiró en ' + farmacia(r.retiro.farmaciaId).nombre + '. Si no la reconocés, la obra social lo revisa.' : ' ¿Es tuya? Si tocás «No la reconozco», se anula y la obra social lo revisa.');
+        top += '<div class="card notice" data-id="' + esc(r.id) + '"><div class="req-top"><span class="badge warn">' + ICON.bell + '</span>' +
+          '<div class="req-txt"><h4>Receta nueva a tu nombre, sin tu Face ID</h4><p>' + esc(txt) + '</p></div></div>' +
+          '<div class="btn-row"><button class="btn btn-ok" type="button" data-act="reconocer" data-v="si" data-rx="' + esc(r.id) + '">Sí, es mía</button>' +
+          '<button class="btn btn-bad" type="button" data-act="reconocer" data-v="no" data-rx="' + esc(r.id) + '">No la reconozco</button></div></div>';
+      });
+      // Primero lo pendiente, después las recetas; la credencial se achica cuando hay algo que hacer.
+      var activas = all.filter(function (r) { return r.estado !== 'esperando'; }), compacta = !!top || activas.length > 0;
+      var cred = '<div class="cred' + (compacta ? ' is-compact' : '') + '"><div class="top"><span>Credencial digital</span><span>' + esc(a.plan) + '</span></div><div class="name">' + esc(a.nombre) + '</div>' +
+        '<div class="num">' + esc(a.credencial) + '</div><div class="foot"><span>' + a.edad + ' años</span><span>Face ID activo</span></div></div>';
+      var recetas = '<div class="card"><div class="card-h"><h3>Mis recetas</h3></div>' + (activas.length ? '<div class="rows">' + activas.slice(0, 8).map(function (r) {
+        var m = med(r.med), lista = dispensable(r);
+        var sub = lista ? 'Lista para retirar · vence el ' + fecha(r.vence)
+          : r.estado === 'sin_cobertura' && r.retiro ? 'La retiró ' + r.retiro.nombre + ' sin tu autorización, sin cobertura. Si todavía la necesitás, pedile una receta nueva a tu médico.'
+          : r.retiro ? 'Retiró ' + r.retiro.nombre + ' · ' + hora(r.retiro.t) : r.estado === 'no_coincide' ? 'El médico está revisando' : r.estado === 'anulada' ? 'Anulada: no la reconociste' : 'No se emitió';
+        return '<div class="row rx" data-id="' + esc(r.id) + '"><div class="info"><b>' + esc(m.nombre) + '</b><small>' + esc(sub) + '</small>' +
+          '<div class="tags"><span class="code">' + esc(r.id) + '</span>' + chip(r.estado) + '</div></div>' + (lista ? qrHTML(r.id) : '') + '</div>';
+      }).join('') + '</div>' : '<div class="empty">Todavía no tenés recetas. Cuando el médico firme una para vos, acá te llega el pedido de Face ID.</div>') + '</div>';
+      var html = top + (compacta ? recetas + cred : cred + recetas);
+      var fam = a.familiar;
+      html += '<div class="card"><div class="card-h"><h3>Quién puede retirar por vos</h3></div>' + (del ?
+        '<div class="deleg"><div><b>' + esc(del.nombre) + '</b><small>' + esc(del.relacion) + ' · retira con su propio Face ID</small></div>' +
+        '<button class="btn btn-ghost btn-sm" type="button" data-act="quitar">Quitar</button></div><p class="hint">Cada retiro de un familiar deja una alerta para la obra social.</p>' :
+        '<p class="hint" style="margin:0">Si no podés ir a la farmacia, autorizá a un familiar. Va a tener que validar su propia cara.</p>' +
+        (fam ? '<button class="btn btn-ghost" type="button" data-act="delegar">Autorizar a ' + esc(fam.nombre) + ' (' + esc(fam.relacion) + ')</button>' : '')) + '</div>';
+      var ev = [];
+      all.forEach(function (r) { r.historial.forEach(function (h) { ev.push(h); }); });
+      if (lleg) lleg.eventos.forEach(function (h) { ev.push(h); });
+      ev.sort(function (x, y) { return y.t - x.t; });
+      html += '<div class="card"><div class="card-h"><h3>Movimientos de tus recetas</h3></div>' + (ev.length ? '<div class="feed">' + ev.slice(0, 5).map(function (h) {
+        return '<div class="feed-item"><span class="dot r-' + h.rol + '"></span><p>' + esc(h.txt) + '</p><time>' + hora(h.t) + '</time></div>';
+      }).join('') + '</div>' : '<div class="empty">Todavía no hay movimientos. Acá vas a ver cada vez que se firma, se emite o se retira una receta a tu nombre.</div>') + '</div>';
+      root.querySelector('#p-main').innerHTML = html;
+      var nPend = all.filter(pendiente).length + (llegadaPedida(ui.af) ? 1 : 0);
+      if (nPend > lastPend && changed && changed.length) revealIn(root, '.card.request, .card.notice');
+      lastPend = nPend;
+      flashRows(root, changed);
+    }
+    return { render: render };
+  }
+
+  /* ---------- farmacia ---------- */
+  function PanelFarmacia(root) {
+    var ui = { sel: null, quien: 'afiliado', q: '', scan: null, busy: false, recien: null };
+    root.innerHTML = head('farmacia', FARMACIA.nombre, 'Mostrador · ' + FARMACIA.sucursal, '<span class="head-tag">Caja 2</span>') +
+      simTray(simQ('En el mostrador', '<span id="f-quien"></span>')) +
+      '<div class="p-body">' + purpose('La farmacia lee el QR, valida con Face ID a quien retira y registra la entrega.') + '<div class="two">' +
+        '<div class="card"><div class="card-h"><h3>Recetas para dispensar</h3><span class="sample" id="f-count"></span></div>' +
+          '<label class="search"><span class="sr">Buscar receta o escanear QR</span>' + ICON.search + '<input class="input" id="f-q" placeholder="Código RX, nombre o credencial" autocomplete="off"></label>' +
+          '<div class="rows" id="f-list"></div></div>' +
+        '<div id="f-detail" class="stack"></div>' +
+      '</div><div class="card"><div class="card-h"><h3>Últimas dispensas</h3><span class="aside">Tocá una para ver el comprobante</span></div><div class="rows" id="f-done"></div></div></div>';
+    var q = root.querySelector('#f-q');
+    q.addEventListener('input', function () { ui.q = q.value.trim().toLowerCase(); renderList([]); });
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]'); if (!b || !root.contains(b) || b.disabled) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'sel') { ui.sel = b.getAttribute('data-rx'); ui.scan = null; ui.recien = null; ui.quien = 'afiliado'; var deDone = !!b.closest('#f-done'); keep(render); revealIn(root, '#f-detail'); if (deDone) focusSoon(root, '#f-detail h3'); }
+      if (act === 'quien') { ui.quien = ({ afiliado: 1, familiar: 1, otra: 1 })[b.getAttribute('data-v')] ? b.getAttribute('data-v') : 'afiliado'; ui.scan = null; keep(renderDetail); }
+      if (act === 'escanear' && !ui.busy) {
+        var r = Store.receta(ui.sel); if (!dispensable(r)) return;
+        var a = af(r.afiliado), fam = Store.delegado(r.afiliado), quien = ui.quien;
+        if (quien === 'familiar' && !fam) { toast('No hay un familiar autorizado para esta receta.', 'info'); return; }
+        var persona = quien === 'afiliado' ? a : quien === 'familiar' ? (a.familiar || TERCERO) : TERCERO;
+        var outcome = quien === 'afiliado' ? 'ok' : quien === 'familiar' ? 'warn' : 'bad';
+        var labels = outcome === 'ok' ? ['Rostro reconocido', 'Coincide con ' + a.nombre]
+          : outcome === 'warn' ? ['Autorización vigente', fam.nombre + ' (' + fam.relacion + ')']
+          : ['Identidad validada: ' + TERCERO.nombre, 'Sin autorización de ' + a.corto];
+        ui.busy = true;
+        var rid = r.id;
+        faceScan(root, persona, outcome, labels, 'Quien retira se valida con su DNI y su cara').then(function () {
+          ui.busy = false;
+          if (ui.sel !== rid) return;
+          ui.scan = { id: rid, quien: quien, outcome: outcome, fam: fam ? { nombre: fam.nombre, relacion: fam.relacion } : null };
+          keep(renderDetail); revealIn(root, '[data-act=dispensar]');
+          var nb = root.querySelector('[data-act=dispensar]'); if (nb) nb.focus({ preventScroll: true });
+        });
+      }
+      if (act === 'dispensar') {
+        var id = ui.sel, s = ui.scan;
+        if (!s || s.id !== id) return;
+        if (!Acciones.dispensar(id, s.quien)) { toast(s.quien === 'familiar' ? 'La autorización del familiar ya no está vigente.' : 'Esta receta ya no se puede dispensar.', 'bad'); ui.scan = null; keep(render); return; }
+        toast(s.quien === 'afiliado' ? 'Dispensada con cobertura. Comprobante enviado.' : s.quien === 'familiar' ? 'Dispensada con alerta para la obra social.' : 'Dispensada sin cobertura. Quedó la alerta.', s.quien === 'afiliado' ? 'ok' : s.quien === 'familiar' ? 'warn' : 'bad');
+        ui.scan = null; ui.recien = id; keep(render); revealIn(root, '#f-detail'); focusSoon(root, '#f-detail .receipt h3');
+      }
+    });
+
+    function coincide(r) {
+      if (!ui.q) return true;
+      var a = af(r.afiliado);
+      return (r.id + ' ' + a.nombre + ' ' + a.credencial.replace(/\s/g, '') + ' ' + a.credencial).toLowerCase().indexOf(ui.q) > -1;
+    }
+    function renderList(changed) {
+      var all = Store.recetas(), list = all.filter(function (r) { return dispensable(r) && coincide(r); });
+      var otras = ui.q.length >= 4 ? all.filter(function (r) { return !dispensable(r) && r.estado !== 'firma_rechazada' && r.id.toLowerCase().indexOf(ui.q) > -1; }).slice(0, 3) : [];
+      if (ui.sel && !Store.receta(ui.sel)) ui.sel = null;
+      root.querySelector('#f-count').textContent = list.length ? list.length + ' en espera' : '';
+      root.querySelector('#f-list').innerHTML = (list.length ? list.slice(0, 12).map(function (r) { return rxRow(r, { button: true, act: 'sel', pressed: ui.sel === r.id }); }).join('')
+        : '<div class="empty">' + (ui.q ? 'No hay recetas para dispensar con ese dato.' : '<b>No hay recetas para entregar.</b>Aparecen acá cuando el médico emite una y el paciente la valida.') + '</div>') +
+        (otras.length ? '<div class="sub-h">QR que no se pueden dispensar</div>' + otras.map(function (r) { return rxRow(r, { button: true, act: 'sel', pressed: ui.sel === r.id }); }).join('') : '');
+      flashRows(root.querySelector('#f-list'), changed);
+    }
+    function validacionQR(r) {
+      var d = medico(r.medicoId), ahora = Date.now(), checks = '', motivo = '';
+      checks += !r.firma ? check('bad', 'Sin firma válida', 'No la firmó el titular de la matrícula')
+        : r.firma.via === 'clave' ? check('warn', 'Firmada con usuario y clave', 'Matrícula ' + d.matricula + ' ' + delDr(d) + ' (REFEPS). Sin Face ID: no prueba quién firmó')
+        : check('ok', 'Auténtica', 'CUIR válido · firmada por ' + elDr(d) + ' · ' + d.matricula + ' · con Face ID');
+      if (r.estado === 'esperando' || r.estado === 'no_coincide') { checks += check('bad', 'No emitida', 'Falta la validación del paciente en la consulta'); motivo = motivo || 'todavía no se emitió'; }
+      else if (r.estado === 'rechazada' || r.estado === 'firma_rechazada') { checks += check('bad', 'No emitida', 'La receta nunca se emitió'); motivo = motivo || 'nunca se emitió'; }
+      else if (r.estado === 'anulada') { checks += check('bad', 'Anulada', af(r.afiliado).corto + ' no la reconoció desde la app'); motivo = motivo || af(r.afiliado).corto + ' no la reconoció'; }
+      else checks += r.excepcion ? check(r.reconocida === true ? 'ok' : 'warn', 'Emitida con excepción', '«' + r.excepcion.motivo + '» · ' + (r.reconocida === true ? af(r.afiliado).corto + ' la reconoció' : r.reconocida === false ? af(r.afiliado).corto + ' no la reconoce' : 'falta que ' + af(r.afiliado).corto + ' la confirme')) : check('ok', 'Emitida', r.consulta && r.consulta.via === 'llegada' ? 'Con Face ID del paciente al llegar al consultorio' : 'Con Face ID del paciente en la consulta');
+      checks += ahora <= r.vence ? check('ok', 'Vigente', 'Hasta el ' + fecha(r.vence)) : check('bad', 'Vencida', 'Venció el ' + fecha(r.vence));
+      if (ahora > r.vence) motivo = motivo || 'está vencida';
+      if (r.retiro) { checks += check('bad', 'Ya usada', 'Dispensada el ' + fecha(r.retiro.t) + ' a las ' + hora(r.retiro.t) + ' en ' + farmacia(r.retiro.farmaciaId).nombre); motivo = motivo || 'ya se dispensó'; }
+      else checks += check('ok', 'Sin dispensas previas', 'El QR no se usó antes');
+      if (!r.firma) motivo = motivo || 'no tiene firma válida';
+      return { html: '<div class="checks">' + checks + '</div>', motivo: motivo };
+    }
+    function comprobanteCard(r) {
+      var ret = r.retiro, m = med(r.med), f = farmacia(ret.farmaciaId), paga = ret.cobertura ? Math.round(m.precio * (100 - m.cob) / 100) : m.precio;
+      var tone = r.estado === 'dispensada' ? 'ok' : r.estado === 'dispensada_alerta' ? 'warn' : 'bad';
+      return '<div class="card receipt receipt-' + tone + '" data-id="' + esc(r.id) + '"><div class="card-h"><h3>' + ICON.receipt + ' Comprobante de dispensa</h3><span class="code">' + esc(ret.comprobante || '—') + '</span></div>' +
+        '<dl class="kv"><div><dt>Quién retiró</dt><dd>' + esc(ret.nombre) + '<small>' + esc(ret.quien === 'afiliado' ? 'Titular · Face ID validado' : ret.quien === 'familiar' ? 'Familiar con autorización · Face ID validado' : 'DNI validado · sin autorización') + '</small></dd></div>' +
+        '<div><dt>Qué recibió</dt><dd>' + esc(m.nombre) + '<small>' + esc(m.pres) + '</small></dd></div>' +
+        '<div><dt>Cuándo</dt><dd>' + fecha(ret.t) + ' · ' + hora(ret.t) + '</dd></div>' +
+        '<div><dt>Dónde</dt><dd>' + esc(f.nombre) + '<small>' + esc(f.sucursal) + ' · ubicación validada</small></dd></div>' +
+        '<div><dt>Cobertura</dt><dd>' + (ret.cobertura ? m.cob + '%' : 'Sin cobertura') + '<small>Pagó ' + pesos(paga) + '</small></dd></div></dl>' +
+        '<p class="hint">Copia enviada a la obra social y a la app de ' + esc(af(r.afiliado).corto) + '.' + (ret.cobertura ? '' : ' La obra social no pagó esta dispensa y ' + esc(af(r.afiliado).corto) + ' recibió el aviso.') + '</p></div>';
+    }
+    function renderDetail() { detalle(); quienRetira(); }
+    // Simulador: quién está en el mostrador. Solo tiene sentido con una receta lista para entregar.
+    function quienRetira() {
+      var host = root.querySelector('#f-quien'); if (!host) return;
+      var r = ui.sel ? Store.receta(ui.sel) : null;
+      if (r && dispensable(r) && !validacionQR(r).motivo) {
+        var a = af(r.afiliado), fam = Store.delegado(r.afiliado);
+        host.innerHTML = seg('Simulador: quién vino a retirar', 'quien', [['afiliado', a.corto + ' (titular)'], ['familiar', fam ? fam.nombre.split(' ')[0] + ' (' + fam.relacion + ')' : 'Familiar', fam ? '' : 'No hay un familiar autorizado en la app'], ['otra', 'Otra persona']], ui.quien) +
+          (fam ? '' : '<span class="hint">Para probar «Familiar», autorizalo en la app de ' + esc(a.corto) + ' (Paciente › Quién puede retirar por vos).</span>');
+      } else host.innerHTML = '<span class="hint">Elegí una receta para simular quién retira.</span>';
+    }
+    function detalle() {
+      var host = root.querySelector('#f-detail');
+      var r = ui.sel ? Store.receta(ui.sel) : null;
+      if (!r) { ui.sel = null; host.innerHTML = '<div class="empty"><b>Elegí una receta de la lista.</b>En el mostrador real se escanea el QR que muestra el paciente. Se valida que sea auténtica, vigente y sin usar; después, quien retira valida con Face ID.</div>'; return; }
+      var a = af(r.afiliado), m = med(r.med), fam = Store.delegado(r.afiliado), d = medico(r.medicoId);
+      var paga = Math.round(m.precio * (100 - m.cob) / 100), v = validacionQR(r), html = '';
+      // Si la autorización del familiar cambió después de validar, la validación ya no vale.
+      if (ui.quien === 'familiar' && !fam) ui.quien = 'afiliado';
+      if (ui.scan && ui.scan.id === r.id && ui.scan.quien === 'familiar' && (!fam || !ui.scan.fam || fam.nombre !== ui.scan.fam.nombre)) {
+        ui.scan = null; toast('Cambió la autorización del familiar: volvé a validar.', 'info');
+      }
+      if (r.retiro) html += comprobanteCard(r);
+      if (r.retiro && ui.recien === r.id) {
+        host.innerHTML = html + '<div class="verdict v-ok"><b>Entrega registrada</b><span>El QR ya no sirve: si alguien lo vuelve a presentar, se rechaza.</span></div>';
+        return;
+      }
+      html += '<div class="card" data-id="' + esc(r.id) + '"><div class="card-h"><h3>' + ICON.qr + ' CUIR ' + esc(r.id) + '</h3>' + chip(r.estado) + '</div>' +
+        '<div class="rx-head"><b>' + esc(m.nombre) + '</b><span>' + esc(m.pres) + ' · ' + esc(r.cie) + ' · ' + esc(d.nombre) + '</span></div>' +
+        '<div class="person">' + faceSVG(a, 38) + '<div><b>' + esc(a.nombre) + '</b><small class="mono">' + esc(a.credencial) + ' · ' + esc(a.plan) + '</small></div></div>' +
+        v.html +
+        (v.motivo ? '<div class="verdict v-bad"><b>QR rechazado</b><span>No se puede dispensar: ' + esc(v.motivo) + '.</span></div>' :
+          '<div class="price"><div><small>Precio</small><b>' + pesos(m.precio) + '</b></div><div><small>Cobertura</small><b>' + m.cob + '%</b></div><div><small>Paga el afiliado</small><b>' + pesos(paga) + '</b></div></div>') +
+        '</div>';
+      if (!v.motivo && dispensable(r)) {
+        html += '<div class="card"><div class="card-h"><h3>Validar a quien retira</h3></div>';
+        var s = ui.scan && ui.scan.id === r.id ? ui.scan : null;
+        if (!s) html += '<p class="hint">Quien retira muestra su DNI y valida con Face ID. Titular: con cobertura. Familiar autorizado: con cobertura y alerta. Otra persona: sin cobertura.</p>' +
+          '<button class="btn btn-primary btn-block" type="button" data-act="escanear">' + ICON.face + 'Validar con Face ID a quien retira</button>';
+        else {
+          var o = s.outcome, sf = s.fam || { nombre: 'Familiar', relacion: '' };
+          html += '<div class="checks">' +
+            check('ok', 'Identidad', o === 'ok' ? 'Coincide con ' + a.nombre : o === 'warn' ? sf.nombre + ', DNI y cara validados' : TERCERO.nombre + ', DNI y cara validados') +
+            check(o, 'Autorización', o === 'ok' ? a.nombre + ' figura en la receta' : o === 'warn' ? 'Con autorización de ' + a.corto + ' en la app (' + sf.relacion + ')' : 'No es ' + a.nombre + ' ni un familiar autorizado') +
+            check('ok', 'Ubicación', 'Dentro de ' + FARMACIA.nombre) +
+            check('ok', 'Hora', hora(Date.now()) + ' · queda en el comprobante') + '</div>';
+          html += o === 'ok' ? '<div class="verdict v-ok"><b>Todo coincide</b><span>Se dispensa con ' + m.cob + '% de cobertura.</span></div><button class="btn btn-ok btn-block" type="button" data-act="dispensar">' + ICON.check + 'Confirmar entrega con cobertura</button>'
+            : o === 'warn' ? '<div class="verdict v-warn"><b>Retira un familiar con autorización</b><span>Se dispensa con cobertura y queda una alerta para la obra social.</span></div><button class="btn btn-warn btn-block" type="button" data-act="dispensar">' + ICON.alert + 'Confirmar entrega con alerta</button>'
+            : '<div class="verdict v-bad"><b>Sin autorización</b><span>Puede comprarlo sin cobertura: ' + pesos(m.precio) + '. Queda una alerta.</span></div><button class="btn btn-bad btn-block" type="button" data-act="dispensar">Confirmar entrega sin cobertura</button>';
+        }
+        html += '</div>';
+      }
+      host.innerHTML = html;
+    }
+    function renderDone(changed) {
+      var done = Store.recetas().filter(function (r) { return r.retiro && r.retiro.farmaciaId === FARMACIA_ID; }).sort(function (x, y) { return y.retiro.t - x.retiro.t; }).slice(0, 6);
+      root.querySelector('#f-done').innerHTML = done.length ? done.map(function (r) {
+        return rxRow(r, { button: true, act: 'sel', pressed: ui.sel === r.id, title: 'Retiró ' + r.retiro.nombre, t: r.retiro.t });
+      }).join('') : '<div class="empty">Todavía no se dispensó nada en este mostrador.</div>';
+      flashRows(root.querySelector('#f-done'), changed);
+    }
+    function render(changed) { renderList(changed); keep(renderDetail); renderDone(changed); }
+    return { render: render };
+  }
+
+  /* ---------- obra social ---------- */
+  function PanelObra(root) {
+    var ui = { sel: null, confirming: false, todas: false };
+    var cfgIn = '<div class="q"><span class="q-l">¿Cuándo confirma el paciente que está presente?</span><div id="o-modo"></div></div><p class="hint" id="o-modo-hint"></p>' +
+      '<div class="q"><span class="q-l">¿El médico firma con Face ID?</span><div id="o-face"></div></div><p class="hint" id="o-face-hint"></p>';
+    // En «Las 4 juntas» la configuración va plegada debajo de los números, para que lo que cambia en vivo quede a la vista.
+    var cfg = '<div class="card"><div class="card-h"><h3>Configuración de la obra social</h3></div>' +
+      '<p class="hint">Cada obra social elige qué controles pide. Probá cambiarlos: el médico y el paciente lo ven al instante.<span class="if-live"> Cambia para todo el grupo.</span></p>' +
+      (MULTI ? '<details class="cfg"><summary id="o-cfg-sum">Cambiar</summary><div class="cfg-body">' + cfgIn + '</div></details>' : cfgIn) + '</div>';
+    var kpis = '<div class="kpis" id="o-kpis"></div>';
+    root.innerHTML = head('obra', 'Obra social', 'Tablero de auditoría en tiempo real', '<span class="head-tag">Tablero</span>') +
+      simTray('<span class="confirm" id="o-demo"></span>') +
+      '<div class="p-body">' + purpose('La obra social elige los controles, sigue cada receta en vivo y revisa lo que marca la IA.') + (MULTI ? kpis + cfg : cfg + kpis) +
+      '<div class="card"><div class="card-h"><h3>Estado de las recetas</h3><span class="sample" id="o-total"></span></div><div class="bar" id="o-bar" aria-hidden="true"></div><div class="legend" id="o-legend"></div></div>' +
+      '<div class="two"><div class="card"><div class="card-h"><h3>' + ICON.spark + ' Señales para revisar</h3><span class="sample">Detección de patrones (IA simulada)</span></div>' +
+        '<p class="hint" style="margin:0">Son señales, no acusaciones: un auditor las revisa antes de hablar de fraude.</p><div class="audit" id="o-audit"></div></div>' +
+      '<div class="card"><div class="card-h"><h3>En vivo</h3><span class="sample">Últimos movimientos</span></div><div class="feed" id="o-feed"></div></div></div>' +
+      '<div class="card"><div class="card-h"><h3>Recetas</h3><span class="aside">Tocá una para ver su recorrido</span></div><div class="tbl-wrap"><table><thead><tr><th>Afiliado</th><th class="hide-narrow">Medicamento</th><th>Estado</th><th class="hide-narrow">Alertas</th><th class="hide-narrow">Última novedad</th></tr></thead><tbody id="o-rows"></tbody></table></div></div>' +
+      '<div id="o-trace"></div>' +
+      '</div>';
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]'); if (!b || !root.contains(b) || b.disabled) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'traza') { ui.sel = ui.sel === b.getAttribute('data-rx') ? null : b.getAttribute('data-rx'); keep(render); if (ui.sel) revealIn(root, '#o-trace'); }
+      if (act === 'modo') {
+        var mv = b.getAttribute('data-v') === 'llegada' ? 'llegada' : 'consulta';
+        if (mv !== Store.config()) { Acciones.modo(mv); toast(mv === 'llegada' ? 'Ahora el paciente valida su identidad al llegar.' : 'Ahora el paciente valida su identidad en la consulta.', 'info'); }
+      }
+      if (act === 'face-medico') {
+        var on = b.getAttribute('data-v') === 'si';
+        if (on !== Store.medicoFace()) { Acciones.faceMedico(on); toast(on ? 'Ahora el médico firma cada receta con su Face ID.' : 'Ahora el médico firma con usuario y clave, sin Face ID.', on ? 'info' : 'warn'); }
+      }
+      if (act === 'revisar') { var est = b.getAttribute('data-v'); Acciones.revisar(b.getAttribute('data-k'), est === 'sin_fraude' || est === 'auditoria' ? est : null); }
+      if (act === 'simular') {
+        var n = Acciones.simular(); toast('Se sumaron ' + n + ' recetas de ejemplo. Mirá «Señales para revisar».', 'info');
+        var c = root.querySelector('#o-audit').closest('.card'), bd = root.querySelector('.p-body');
+        if (bd.scrollHeight > bd.clientHeight + 1) bd.scrollTo({ top: bd.scrollTop + c.getBoundingClientRect().top - bd.getBoundingClientRect().top - 12, behavior: REDUCED ? 'auto' : 'smooth' });
+        else c.scrollIntoView({ block: 'start', behavior: REDUCED ? 'auto' : 'smooth' });
+      }
+      if (act === 'reset') { ui.confirming = true; keep(renderDemo); }
+      if (act === 'reset-no') { ui.confirming = false; keep(renderDemo); }
+      if (act === 'reset-ok') { ui.confirming = false; ui.sel = null; Store.reset(); toast(Store.mode() === 'live' ? 'Demo reiniciada para todo el grupo.' : 'Demo reiniciada.', 'info'); keep(renderDemo); }
+      if (act === 'mas-senales') { ui.todas = !ui.todas; keep(render); }
+    });
+    var ORDEN = ['firma_rechazada', 'esperando', 'no_coincide', 'emitida', 'emitida_alerta', 'dispensada', 'dispensada_alerta', 'sin_cobertura', 'anulada', 'rechazada'];
+    var COLOR = { ok: 'var(--ok)', warn: 'var(--warn-fill)', bad: 'var(--bad)', info: 'var(--info)' };
+    function renderDemo() {
+      var sims = Store.recetas().filter(function (r) { return r.simulada; }), live = Store.mode() === 'live';
+      var ultima = sims.reduce(function (mx, r) { return Math.max(mx, r.actualizada || 0); }, 0);
+      // Si la actividad de ejemplo quedó vieja (más de 6 h), se puede actualizar: reemplaza la anterior.
+      var vieja = sims.length > 0 && Date.now() - ultima > 6 * 3600e3, cargada = sims.length > 0 && !vieja;
+      root.querySelector('#o-demo').innerHTML = ui.confirming ?
+        '<span class="demo-txt">' + (live ? 'Se borra todo lo que hizo el grupo (recetas, autorizaciones, revisiones, llegadas y configuración) en todos los dispositivos.' : 'Se borra todo lo que hiciste en este navegador.') + '</span><button class="btn btn-bad btn-sm" type="button" data-act="reset-ok">Sí, borrar todo</button><button class="btn btn-ghost btn-sm" type="button" data-act="reset-no">Cancelar</button>' :
+        '<button class="btn btn-ghost btn-sm" type="button" data-act="simular"' + (cargada ? ' disabled' : '') + '>' + ICON.spark + (vieja ? 'Actualizar actividad de ejemplo' : 'Cargar actividad de ejemplo') + '</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" data-act="reset">Reiniciar demo</button>' +
+        '<span class="demo-txt">' + (cargada ? 'La actividad de ejemplo ya está cargada.' : 'Suma recetas de otros médicos y farmacias para ver los patrones.') + '</span>';
+    }
+    function trace(r) {
+      if (!r) return '';
+      var a = af(r.afiliado), m = med(r.med), d = medico(r.medicoId);
+      var items = r.historial.slice().sort(function (x, y) { return x.t - y.t; }).map(function (h) {
+        return '<li><span class="dot r-' + h.rol + '"></span><time>' + hora(h.t) + '</time><p>' + esc(h.txt) + '</p></li>';
+      }).join('');
+      return '<div class="card" data-id="' + esc(r.id) + '"><div class="card-h"><h3>Recorrido de ' + esc(r.id) + '</h3>' + chip(r.estado) + '</div>' +
+        '<div class="trace-sum"><span><b>' + esc(a.nombre) + '</b> · ' + esc(a.credencial) + '</span><span>' + esc(m.nombre) + ' · ' + esc(r.cie) + '</span><span>' + esc(d.nombre) + ' · ' + esc(d.matricula) + '</span>' +
+        (r.retiro ? '<span>Comprobante ' + esc(r.retiro.comprobante) + ' · ' + esc(farmacia(r.retiro.farmaciaId).nombre) + '</span>' : '<span>Vence el ' + fecha(r.vence) + '</span>') + '</div>' +
+        '<ol class="timeline">' + items + '</ol>' +
+        (r.alertas.length ? '<div class="trace-al">' + r.alertas.map(function (x) { return '<span class="chip t-warn">' + esc(x.txt) + '</span>'; }).join('') + '</div>' : '') + '</div>';
+    }
+    function render(changed) {
+      var all = Store.recetas(), modo = Store.config();
+      root.querySelector('#o-modo').innerHTML = seg('Cuándo confirma el paciente que está presente', 'modo', [['consulta', 'En la consulta'], ['llegada', 'Al llegar']], modo);
+      root.querySelector('#o-modo-hint').textContent = modo === 'llegada'
+        ? 'El paciente valida al llegar (desde la app o se lo pide la recepción) y el médico emite sin otro Face ID durante ' + TOKEN_HORAS + ' horas. Si no validó o es particular, valida en la consulta.'
+        : 'El médico pide el Face ID del paciente cuando arma la receta, en la consulta.';
+      var conFace = Store.medicoFace(), sinBio = all.filter(function (r) { return r.firma && r.firma.via === 'clave'; }).length;
+      root.querySelector('#o-face').innerHTML = seg('El médico firma con Face ID', 'face-medico', [['si', 'Sí'], ['no', 'No, con usuario y clave']], conFace ? 'si' : 'no');
+      var sum = root.querySelector('#o-cfg-sum');
+      if (sum) sum.textContent = 'Paciente: ' + (modo === 'llegada' ? 'al llegar' : 'en la consulta') + ' · Médico: ' + (conFace ? 'con Face ID' : 'con usuario y clave') + ' — Cambiar';
+      root.querySelector('#o-face-hint').textContent = (conFace
+        ? 'El titular de la matrícula firma con su cara: si es otra persona, la receta se bloquea y queda una alerta.'
+        : 'Si firma otra persona con su usuario y clave (por ejemplo, la secretaria), el sistema no lo detecta.') +
+        (sinBio ? ' Recetas firmadas sin Face ID: ' + sinBio + '.' : '');
+      var count = function (set) { return all.filter(function (r) { return has(set, r.estado); }).length; };
+      var sen = senales(all, Store.llegadas()), pend = sen.filter(function (s) { return s.nivel !== 'baja' && !Store.revision(s.key); }).length;
+      var llAll = Store.llegadas();
+      var alertas = all.reduce(function (n, r) { return n + r.alertas.length; }, 0) + Object.keys(llAll).reduce(function (n, k) { return n + (has(AFILIADOS, k) ? llAll[k].fallos : 0); }, 0);
+      root.querySelector('#o-kpis').innerHTML =
+        '<div class="kpi"><small>Emitidas</small><b>' + count(EMITIDAS) + '</b><span>con Face ID o excepción</span></div>' +
+        '<div class="kpi k-ok"><small>Dispensadas</small><b>' + count({ dispensada: 1, dispensada_alerta: 1 }) + '</b><span>con cobertura</span></div>' +
+        '<div class="kpi k-bad"><small>Frenadas</small><b>' + count(FRENADAS) + '</b><span>firmas bloqueadas, no emitidas, anuladas o entregadas sin cobertura</span></div>' +
+        '<div class="kpi k-warn"><small>Para revisar</small><b>' + pend + '</b><span>' + alertas + (alertas === 1 ? ' alerta' : ' alertas') + ' en total</span></div>';
+      root.querySelector('#o-total').textContent = all.length ? all.length + (all.length === 1 ? ' receta' : ' recetas') : '';
+      var by = Object.create(null); all.forEach(function (r) { by[r.estado] = (by[r.estado] || 0) + 1; });
+      var vis = ORDEN.filter(function (k) { return by[k]; });
+      root.querySelector('#o-bar').innerHTML = vis.map(function (k) {
+        return '<i style="width:' + (by[k] / all.length * 100) + '%;background:' + COLOR[ESTADOS[k].tone] + ';opacity:' + (k === 'esperando' ? .55 : 1) + '"></i>';
+      }).join('');
+      root.querySelector('#o-legend').innerHTML = all.length ? vis.map(function (k) {
+        return '<span><i style="background:' + COLOR[ESTADOS[k].tone] + ';opacity:' + (k === 'esperando' ? .55 : 1) + '"></i>' + esc(ESTADOS[k].label) + ' · <b class="num">' + by[k] + '</b></span>';
+      }).join('') : '<span>Sin recetas todavía. Empezá desde Médico o cargá la actividad de ejemplo.</span>';
+      var sueltas = sen.filter(function (s) { return s.nivel === 'baja'; }), aRevisar = sen.filter(function (s) { return s.nivel !== 'baja'; });
+      // Una tarjeta por sujeto (médico, farmacia, persona o afiliado) con sus señales; cada señal conserva su clave y su revisión.
+      var grupos = [], gi = Object.create(null);
+      aRevisar.forEach(function (s) {
+        var suj = s.titulo.split(' · ')[0];
+        if (!gi[suj]) { gi[suj] = { suj: suj, tipo: s.tipo, items: [] }; grupos.push(gi[suj]); }
+        gi[suj].items.push(s);
+      });
+      var visG = ui.todas ? grupos : grupos.slice(0, 4);
+      var restoN = grupos.slice(visG.length).reduce(function (n, g) { return n + g.items.length; }, 0);
+      var conSenal = Object.create(null);
+      sen.forEach(function (s) { if (s.tipo === 'Médico') conSenal[s.titulo.split(' · ')[0]] = 1; });
+      var limpios = Object.keys(MEDICOS).filter(function (id) { return !conSenal[MEDICOS[id].nombre] && all.some(function (r) { return r.medicoId === id && r.firma; }); })
+        .map(function (id) { return MEDICOS[id].nombre; }).sort(function (x, y) { return x.replace(/^Dra?\. /, '').localeCompare(y.replace(/^Dra?\. /, '')); });
+      root.querySelector('#o-audit').innerHTML = (grupos.length ? visG.map(function (g) {
+        var lvl = g.items.some(function (s) { return s.nivel === 'alta'; }) ? 'alta' : 'media';
+        var hechas = g.items.every(function (s) { return Store.revision(s.key); });
+        return '<div class="audit-item lvl-' + lvl + (hechas ? ' done' : '') + '"><div class="ai-txt"><span class="ai-tipo">' + esc(g.tipo) + '</span><b>' + esc(g.suj) + '</b></div><ul class="ai-list">' + g.items.map(function (s) {
+          var rv = Store.revision(s.key), que = s.titulo.split(' · ').slice(1).join(' · '), acciones;
+          if (rv) acciones = '<span class="chip ' + (rv.estado === 'auditoria' ? 't-bad">En auditoría' : 't-ok">Revisada: sin fraude') + '</span><button class="link" type="button" data-act="revisar" data-v="" data-k="' + esc(s.key) + '">Reabrir</button>';
+          else acciones = '<button class="btn btn-ghost btn-sm" type="button" data-act="revisar" data-v="sin_fraude" data-k="' + esc(s.key) + '">Marcar sin fraude</button><button class="btn btn-ghost btn-sm" type="button" data-act="revisar" data-v="auditoria" data-k="' + esc(s.key) + '">Abrir auditoría</button>';
+          return '<li><div class="ai-txt"><span class="ai-s">' + esc(que ? cap(que) : s.titulo) + '</span><small>' + esc(s.detalle) + '</small></div><div class="ai-act">' + acciones + '</div></li>';
+        }).join('') + '</ul></div>';
+      }).join('') + (restoN ? '<button class="link ai-more" type="button" data-act="mas-senales">Ver ' + restoN + (restoN === 1 ? ' señal más' : ' señales más') + '</button>' : ui.todas && grupos.length > 4 ? '<button class="link ai-more" type="button" data-act="mas-senales">Ver menos</button>' : '')
+        : '<div class="empty">Sin señales todavía. Aparecen con excepciones, retiros de otras personas o patrones raros. Para ver ejemplos: Simulador › «Cargar actividad de ejemplo», arriba de esta pantalla.</div>') +
+        (sueltas.length ? '<p class="hint">Afiliados afectados, todavía sin revisar: ' + esc(sueltas.map(function (s) { return s.titulo.split(' · ')[0]; }).join(', ')) + '. Si suman otra alerta propia, pasan a esta lista.</p>' : '') +
+        (limpios.length ? '<p class="hint">Sin señales: ' + esc(limpios.join(', ')) + '.</p>' : '');
+      var ev = [];
+      all.forEach(function (r) { r.historial.forEach(function (h) { ev.push({ t: h.t, rol: h.rol, txt: h.txt, id: r.id }); }); });
+      var ll = Store.llegadas();
+      Object.keys(ll).forEach(function (k) { if (has(AFILIADOS, k)) ll[k].eventos.forEach(function (h) { ev.push({ t: h.t, rol: h.rol, txt: h.txt, id: 'llegada-' + k }); }); });
+      ev.sort(function (x, y) { return y.t - x.t; });
+      root.querySelector('#o-feed').innerHTML = ev.length ? ev.slice(0, 7).map(function (h) {
+        return '<div class="feed-item" data-id="' + esc(h.id) + '"><span class="dot r-' + h.rol + '"></span><p>' + esc(h.txt) + '</p><time>' + hora(h.t) + '</time></div>';
+      }).join('') : '<div class="empty">Cada paso del médico, el paciente y la farmacia aparece acá al instante.</div>';
+      if (ui.sel && !all.some(function (r) { return r.id === ui.sel; })) ui.sel = null;
+      var filas = all.slice().sort(function (x, y) { return (y.actualizada || 0) - (x.actualizada || 0); });
+      root.querySelector('#o-rows').innerHTML = filas.length ? filas.slice(0, 40).map(function (r) {
+        var a = af(r.afiliado), m = med(r.med), n = r.alertas.length, dn = medico(r.medicoId).nombre;
+        return '<tr data-id="' + esc(r.id) + '"' + (ui.sel === r.id ? ' class="is-sel"' : '') + '><td><button type="button" class="cell-btn" data-act="traza" data-rx="' + esc(r.id) + '" aria-pressed="' + (ui.sel === r.id) + '">' + esc(a.nombre) + '<span class="sub mono">' + esc(r.id) + '</span><span class="sub show-narrow">' + esc(dn) + '</span></button></td><td class="hide-narrow">' + esc(m.nombre) + '<span class="sub">' + esc(dn) + '</span></td>' +
+          '<td>' + chip(r.estado) + (n ? '<span class="chip t-warn show-narrow">' + n + (n === 1 ? ' alerta' : ' alertas') + '</span>' : '') + '</td><td class="num hide-narrow">' + (n ? '<span class="chip t-warn">' + n + '</span>' : '<span class="muted-s">0</span>') + '</td><td class="num hide-narrow">' + hora(r.actualizada) + '</td></tr>';
+      }).join('') : '<tr><td colspan="5" class="muted-s">Todavía no hay recetas.</td></tr>';
+      root.querySelector('#o-trace').innerHTML = ui.sel ? trace(all.filter(function (r) { return r.id === ui.sel; })[0]) : '';
+      keep(renderDemo);
+      flashRows(root, changed);
+    }
+    return { render: render };
+  }
+
+  /* ================= vistas ================= */
+  var PANELES = { medico: PanelMedico, paciente: PanelPaciente, farmacia: PanelFarmacia, obra: PanelObra };
+  var ROUTES = { medico: ['medico'], paciente: ['paciente'], farmacia: ['farmacia'], 'obra-social': ['obra'], todas: ['medico', 'paciente', 'farmacia', 'obra'] };
+  var mounted = [];
+  // Cada panel se dibuja por separado: si uno falla, los demás siguen. El foco del teclado vuelve al mismo control.
+  function focusKey(el) {
+    if (!el || !el.closest || !el.closest('.panel')) return null;
+    return { panel: el.closest('.panel').getAttribute('data-role'), sel: el.id ? '#' + el.id : ['data-act', 'data-v', 'data-rx', 'data-k'].filter(function (a) { return el.hasAttribute(a); }).map(function (a) { return '[' + a + '="' + CSS.escape(el.getAttribute(a)) + '"]'; }).join('') };
+  }
+  function restoreFocus(fk) {
+    if (!fk || !fk.sel || (document.activeElement && document.activeElement !== document.body)) return;
+    try { var t = document.querySelector('.panel[data-role="' + fk.panel + '"] ' + fk.sel); if (t) t.focus({ preventScroll: true }); } catch (e) {}
+  }
+  function keep(fn) { var fk = null; try { fk = focusKey(document.activeElement); } catch (e) {} fn([]); restoreFocus(fk); }
+  function renderAll(changed) {
+    var fk = null;
+    try { fk = focusKey(document.activeElement); } catch (e) {}
+    mounted.forEach(function (p) { try { p.render(changed); } catch (e) { console.error(e); } });
+    restoreFocus(fk);
+  }
+  Store.on(renderAll);
+
+  function home() {
+    var cards = [
+      ['medico', 'Médico', 'Arma y firma la receta. Si otra persona usa su matrícula, se bloquea.', 'firmá para Rosa; después elegí «Secretaria» en el Simulador.', 'Entrar como médico →'],
+      ['paciente', 'Paciente', 'La app de la obra social: valida con Face ID, recibe la receta con QR y, si salió con excepción sin su Face ID, puede decir «No la reconozco».', 'validá con Face ID; con «Otra persona», no coincide.', 'Abrir la app del paciente →'],
+      ['farmacia', 'Farmacia', 'Lee el QR, valida con Face ID a quien retira y entrega con comprobante.', 'con «Otra persona», sale sin cobertura.', 'Atender en la farmacia →'],
+      ['obra-social', 'Obra social', 'Elige los controles, sigue cada receta en vivo y revisa las señales de la IA.', 'Simulador › «Cargar actividad de ejemplo».', 'Ver el tablero →']
+    ];
+    var acc = { medico: 'var(--medico)', paciente: 'var(--paciente)', farmacia: 'var(--farmacia)', 'obra-social': 'var(--obra)' };
+    var ic = { medico: 'medico', paciente: 'paciente', farmacia: 'farmacia', 'obra-social': 'obra' };
+    var controles = [
+      [ICON.shield, 'Médico habilitado', 'Matrícula verificada en el registro nacional (REFEPS). Si la obra social lo pide, el médico firma cada receta con su Face ID.'],
+      [ICON.face, 'Paciente presente', 'El paciente confirma con Face ID que está ahí: al llegar o en la consulta, según elija la obra social. Si no puede, el médico emite con una excepción justificada, que deja alerta.'],
+      [ICON.bell, 'Aviso al afiliado', 'Si una receta salió con excepción, sin su Face ID, le llega un aviso a la app. Si responde «No la reconozco», se anula; si ya se retiró, queda la alerta para la obra social.'],
+      [ICON.qr, 'QR único', 'Cada receta tiene un código único (CUIR) en su QR: la farmacia comprueba que sea auténtica, esté vigente y no se haya usado.'],
+      [ICON.receipt, 'Entrega confirmada', 'Quien retira valida su Face ID. Titular: con cobertura. Familiar autorizado: con cobertura y alerta. Otra persona: sin cobertura. Siempre queda un comprobante.'],
+      [ICON.spark, 'Patrones con IA', 'Marca patrones raros: muchas recetas en poco tiempo, una farmacia que concentra un remedio, alguien que retira para muchos. Un auditor revisa antes de hablar de fraude.']
+    ];
+    var ancho = false; try { ancho = window.matchMedia('(min-width: 761px)').matches; } catch (e) {}
+    return '<section class="home">' +
+      '<div class="home-head"><span class="sample">MBA Salud · Grupo 1 · Producto imaginario</span><h1>Una receta, cuatro pantallas</h1>' +
+      '<p><b>Huella Clínica</b> es un módulo que se suma a la app de cada obra social para frenar un fraude concreto: recetas a nombre de un afiliado que retira otra persona. Con Face ID confirma quién se atiende y quién retira, y también quién firma cuando la obra social lo pide. Funcionaría como receta digital oficial, válida en todo el país (ReNaPDiS, Ley 27.553).</p>' +
+      '<div class="home-actions"><a class="btn btn-primary" id="h-start" href="#todas" style="--accent:var(--brand)">Empezar el recorrido guiado</a><button type="button" class="btn btn-ghost" id="h-como">Cómo probarla ↓</button></div>' +
+      '<span class="sample">Nombres, matrículas y códigos ficticios · Face ID simulado</span></div>' +
+      '<section id="como" class="howto" aria-labelledby="como-t"><h2 class="sec" id="como-t">Cómo probarla</h2><ol>' +
+        '<li><b>Sola/o, en un dispositivo · 5 min.</b> Tocá «Empezar el recorrido guiado». Arriba de cada pantalla, la guía te dice en qué paso estás, qué tocar y te lleva a la pantalla que sigue.</li>' +
+        '<li><span class="if-live"><b>Con el grupo, cada uno en su dispositivo.</b> Repártanse Médico, Paciente, Farmacia y Obra social con la barra de arriba. Lo que hace uno les aparece a los demás al instante. Arranca quien tiene Médico.</span>' +
+          '<span class="if-local"><b>Esta copia funciona en un solo dispositivo.</b> Lo que hagas acá no lo ve nadie más. En una compu podés abrir cada pantalla en otra pestaña del mismo navegador y se sincronizan.</span></li>' +
+        '<li>Las franjas <span class="sim-tag">▷ Simulador</span> no son parte del producto: hacen de la persona que está frente a la cámara, en la computadora o en el mostrador.</li>' +
+      '</ol><p class="hint">¿Quedó llena de pruebas? Obra social › Simulador › «Reiniciar demo».<span class="if-live"> Borra todo para todo el grupo.</span></p></section>' +
+      '<h2 class="sec">Elegí una pantalla</h2>' +
+      '<div class="roles">' + cards.map(function (c) {
+        return '<a class="role-card" href="#' + c[0] + '" style="--accent:' + acc[c[0]] + '"><span class="ic">' + ICON[ic[c[0]]] + '</span><h3>' + esc(c[1]) + '</h3><p>' + esc(c[2]) + '</p><p class="try"><b>Probá:</b> ' + esc(c[3]) + '</p><span class="go">' + esc(c[4]) + '</span></a>';
+      }).join('') + '</div>' +
+      '<h2 class="sec">Qué controla Huella Clínica</h2>' +
+      '<details class="ctrls-d"' + (ancho ? ' open' : '') + '><summary>Ver los 6 controles</summary><div class="ctrls">' +
+        controles.map(function (c) { return '<div class="ctrl"><span class="ctrl-ic">' + c[0] + '</span><b>' + esc(c[1]) + '</b><span>' + esc(c[2]) + '</span></div>'; }).join('') +
+      '</div></details>' +
+      '</section>';
+  }
+
+  function route() {
+    var r = (location.hash || '').replace('#', '');
+    var view = document.getElementById('view');
+    var th = document.getElementById('toasts'); if (th) th.textContent = '';
+    mounted = []; APP_AF = null;
+    document.querySelectorAll('.nav a').forEach(function (a) {
+      if (a.getAttribute('data-route') === r) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    var roles = has(ROUTES, r) ? ROUTES[r] : null;
+    if (!roles) {
+      MULTI = false;
+      view.className = 'wrap'; view.innerHTML = home();
+      // En el celular, la guía va de pantalla en pantalla: el recorrido empieza en Médico.
+      var hs = view.querySelector('#h-start');
+      try { if (hs && !window.matchMedia('(min-width: 860px)').matches) hs.setAttribute('href', '#medico'); } catch (e) {}
+      // Es un botón y no un enlace a #como: el router de hash volvería al inicio.
+      var hc = view.querySelector('#h-como');
+      if (hc) hc.addEventListener('click', function () { var t = document.getElementById('como'); if (t) t.scrollIntoView({ block: 'start', behavior: REDUCED ? 'auto' : 'smooth' }); });
+      window.scrollTo(0, 0); return;
+    }
+    var multi = roles.length > 1, host, els = {};
+    var NOMBRE = { medico: 'Médico', paciente: 'Paciente', farmacia: 'Farmacia', obra: 'Obra social' };
+    MULTI = multi;
+    view.className = 'wrap' + (multi ? ' full' : '');
+    var guia = '<div class="coach" id="coach" role="status" aria-live="polite"></div>';
+    if (multi) {
+      view.innerHTML = '<h1 class="sr">Las 4 pantallas juntas</h1><div class="board">' + guia + '<div class="grid4"></div></div>';
+      host = view.querySelector('.grid4');
+    } else {
+      view.innerHTML = '<h1 class="sr">Pantalla: ' + NOMBRE[roles[0]] + '</h1><div class="solo' + (roles[0] === 'paciente' ? ' is-phone' : '') + '">' + guia + '</div>';
+      host = view.querySelector('.solo');
+    }
+    roles.forEach(function (role) {
+      var el = document.createElement('section');
+      el.className = 'panel'; el.setAttribute('data-role', role);
+      el.setAttribute('aria-label', { medico: 'Pantalla del médico', paciente: 'App del paciente', farmacia: 'Pantalla de la farmacia', obra: 'Tablero de la obra social' }[role]);
+      host.appendChild(el);
+      els[role] = el;
+      var p = PANELES[role](el);
+      mounted.push(p);
+      try { p.render([]); } catch (e) { console.error(e); }
+    });
+    // La guía se dibuja al final, después de los paneles (por ejemplo, cuando la app del paciente cambia de afiliado).
+    var c = Coach(view.querySelector('#coach'), els); mounted.push(c); try { c.render(); } catch (e) { console.error(e); }
+    var cur = document.querySelector('.nav a[aria-current]'), nav = document.querySelector('.nav');
+    if (cur && nav) nav.scrollLeft = cur.offsetLeft - nav.offsetLeft - 8;
+    window.scrollTo(0, 0);
+  }
+
+  /* guía «Paso N · Rol»: está en todas las pantallas y lleva de una a la otra */
+  function Coach(el, panels) {
+    var NOMBRE = { medico: 'Médico', paciente: 'Paciente', farmacia: 'Farmacia', obra: 'Obra social' };
+    var RUTA = { medico: 'medico', paciente: 'paciente', farmacia: 'farmacia', obra: 'obra-social' };
+    var keys = Object.keys(panels), multi = keys.length > 1, last = '';
+    el.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-go]'); if (!b) return;
+      var p = panels[b.getAttribute('data-go')];
+      if (p) { try { p.scrollIntoView({ block: 'start', behavior: REDUCED ? 'auto' : 'smooth' }); } catch (x) { p.scrollIntoView(); } }
+    });
+    try { new ResizeObserver(function () { document.documentElement.style.setProperty('--coach-h', el.offsetHeight + 'px'); }).observe(el); } catch (e) {}
+    function render() {
+      // Sigue las recetas que firmó esta pestaña y, salvo con la base compartida en «Las 4 juntas», las de los últimos 20 minutos.
+      var RECIENTE = 20 * 60e3, now = Date.now(), soloMias = MULTI && Store.mode() === 'live', todas = Store.recetas();
+      var all = todas.filter(function (r) { return !r.simulada && (MIAS.indexOf(r.id) > -1 || (!soloMias && now - (r.actualizada || 0) < RECIENTE)); })
+        .sort(function (a, b) { return (b.actualizada || 0) - (a.actualizada || 0); });
+      var r = all[0], s, ll = Store.llegadas(), lk = null, ct = Store.configT();
+      // Si la app del paciente muestra a alguien con un pedido pendiente, la guía habla de esa persona (como la app).
+      var pendDe = function (k) { return all.filter(function (x) { return x.afiliado === k && (x.estado === 'esperando' || porConfirmar(x)); })[0]; };
+      if (APP_AF && r && r.afiliado !== APP_AF && pendDe(APP_AF)) r = pendDe(APP_AF);
+      var oks = DEMO_AF.filter(function (k) { return has(ll, k) && esOS(k) && !rxPend(k) && !(ll[k].estado !== 'esperando' && now - ll[k].t > RECIENTE); });
+      // Un pedido de llegada sin responder va primero (el más viejo, como en la app); si no, el último movimiento.
+      oks.filter(function (k) { return ll[k].estado === 'esperando'; }).forEach(function (k) { if (!lk || ll[k].t < ll[lk].t) lk = k; });
+      if (!lk) oks.forEach(function (k) { if (!lk || ll[k].t > ll[lk].t) lk = k; });
+      var lg = lk ? ll[lk] : null, corto = lk ? af(lk).corto : '', X = r ? af(r.afiliado).corto : '';
+      var tm = Store.configTm(), conFace = Store.medicoFace(), ocupada = !!(r && (r.estado === 'esperando' || porConfirmar(r)));
+      if (tm && tm > ct && (!lg || lg.t < tm) && (!r || r.actualizada < tm) && !ocupada) s = ['medico', 1, conFace ? 'Ahora la obra social pide el Face ID del médico. En el Simulador elegí «Secretaria» y firmá: la receta se bloquea.' : 'Ahora el médico firma con usuario y clave. En el Simulador elegí «Secretaria» y firmá: la firma pasa y nadie lo detecta.'];
+      else if (enModoLlegada() && (!lg || lg.t < ct) && (!r || r.actualizada < ct) && !ocupada) s = ['medico', 1, 'Ahora el paciente valida al llegar. En Recepción tocá «Pedir Face ID» al lado de Rosa (o validá desde la app de Rosa). Ana viene como particular: valida en la consulta.'];
+      else if (enModoLlegada() && lg && (lg.estado === 'esperando' || !r || lg.t > r.actualizada)) {
+        if (lg.estado === 'esperando') s = ['paciente', 2, 'En la app de ' + corto + ', tocá «Validar llegada con Face ID».'];
+        else if (lg.estado === 'validada' && tokenValido(lk)) s = ['medico', 3, corto + ' ya validó su llegada. En «Nueva receta» elegí a ' + corto + ' y firmá: sale sin otro Face ID.'];
+        else if (lg.estado === 'validada') s = ['medico', 1, 'La llegada de ' + corto + ' venció: en Recepción, pedí de nuevo su Face ID.'];
+        else s = ['medico', 2, 'La cara no coincidió al llegar y la obra social ya tiene la señal. Tocá «Reintentar» en Recepción, o firmá igual: el Face ID se pide en la consulta.'];
+      }
+      if (s) { /* ya está */ }
+      else if (!r) s = ['medico', 1, conFace ? 'Elegí paciente y medicamento y tocá «Firmar con Face ID». Para ver el bloqueo, antes elegí «Secretaria» en el Simulador.' : 'Elegí paciente y medicamento y tocá «Firmar con usuario y clave». Con «Secretaria» en el Simulador, la firma pasa igual.'];
+      else if (r.estado === 'firma_rechazada') s = ['medico', 1, 'Firma bloqueada: no era el titular de la matrícula y la obra social ya tiene la alerta. Volvé a «Dr. Ruiz» en el Simulador y firmá.'];
+      else if (r.estado === 'esperando') s = ['paciente', 2, 'En la app de ' + X + ', tocá «Validar con Face ID». Si en el Simulador elegís «Otra persona», no coincide.'];
+      else if (r.estado === 'no_coincide') s = ['medico', 2, 'La cara no coincidió. El médico decide: emitir con excepción (deja una alerta y le avisa al paciente) o no emitir.'];
+      else if (r.estado === 'emitida_alerta' && porConfirmar(r)) s = ['paciente', 3, 'Salió con excepción: a ' + X + ' le llegó un aviso. «No la reconozco» la anula; «Sí, es mía» la deja lista para la farmacia.'];
+      else if (dispensable(r)) s = ['farmacia', 3, 'Elegí la receta de ' + X + ': se valida el QR. Después, en el Simulador, elegí quién vino a retirar y validá su Face ID.'];
+      else if (r.estado === 'anulada') s = ['obra', 4, X + ' no reconoció la receta: quedó anulada y aparece en «Señales para revisar».'];
+      else if (r.estado === 'rechazada') s = ['medico', 1, 'La receta no se emitió y quedó registrada. Probá con otra.'];
+      else if (r.reconocida === false) s = ['obra', 4, X + ' no reconoció una receta que ya se había retirado: suma una alerta y aparece en «Señales para revisar».'];
+      else if (!todas.some(function (x) { return x.simulada; })) s = ['obra', 4, (r.estado === 'sin_cobertura' ? 'Se dispensó sin cobertura y quedó la alerta.' : r.estado === 'dispensada_alerta' ? 'Dispensada por un familiar: suma una alerta.' : 'Dispensada con cobertura.') + ' Tocá la receta en «Recetas» para ver su recorrido. Después, en el Simulador, «Cargar actividad de ejemplo».'];
+      else s = ['obra', 4, 'Mirá «Señales para revisar»: la IA marca a la Dra. Méndez (7 recetas en una hora, 4 sin Face ID del paciente). Son señales: el auditor decide si abre una auditoría.'];
+      // En una pantalla sola, si el paso es de otra, la guía lleva hasta ella; en «Las 4 juntas», baja hasta el panel.
+      var go = !multi && keys[0] === s[0] ? '' : multi ? '<button type="button" class="btn btn-sm btn-ghost coach-go" data-go="' + s[0] + '">Ir ↓</button>'
+        : '<a class="btn btn-sm btn-ghost coach-go" href="#' + RUTA[s[0]] + '">Ir a ' + NOMBRE[s[0]] + ' →</a>';
+      var key = s.join('|') + go;
+      if (key === last) return;
+      last = key;
+      el.style.setProperty('--accent', 'var(--' + s[0] + ')');
+      el.innerHTML = '<span class="coach-n">' + s[1] + '</span><span class="coach-t"><b>Paso ' + s[1] + ' · ' + NOMBRE[s[0]] + '</b> ' + esc(s[2]) + '</span>' + go;
+      if (multi) keys.forEach(function (k) { panels[k].classList.toggle('is-next', k === s[0]); });
+    }
+    return { render: render };
+  }
+
+  (function () {
+    var tb = document.querySelector('.topbar');
+    function setTop() { document.documentElement.style.setProperty('--top-h', tb.offsetHeight + 'px'); }
+    setTop();
+    try { new ResizeObserver(setTop).observe(tb); } catch (e) { window.addEventListener('resize', setTop); }
+  })();
+  window.addEventListener('hashchange', route);
+  // «Ir a la pantalla»: es un botón (un enlace a #view dispararía el router).
+  (function () { var sk = document.getElementById('skip'); if (sk) sk.addEventListener('click', function () { var v = document.getElementById('view'); if (v) v.focus(); }); })();
+  route();
+  Store.init();
+})();
+</script>
+
+</body></html>
