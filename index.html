@@ -683,7 +683,8 @@ td .sub.show-narrow { display: none; }
   var TOKEN_HORAS = 4;
   // Turnos de hoy en el consultorio. Ana viene como particular: no valida su llegada por la obra social.
   var AGENDA = [{ af: 'rosa', tipo: 'os' }, { af: 'jorge', tipo: 'os' }, { af: 'ana', tipo: 'particular' }];
-  var LLEGADA = { esperando: 1, validada: 1, no_coincide: 1 };
+  // fuera: la cara coincidió, pero el paciente no estaba en el consultorio y no era una teleconsulta
+  var LLEGADA = { esperando: 1, validada: 1, no_coincide: 1, fuera: 1 };
 
   /* ================= utilidades ================= */
   function has(o, k) { return typeof k === 'string' && Object.prototype.hasOwnProperty.call(o, k); }
@@ -819,7 +820,7 @@ td .sub.show-narrow { display: none; }
       estado: has(ESTADOS, raw.estado) ? raw.estado : 'esperando',
       creada: creada, actualizada: num(raw.actualizada) || creada, vence: num(raw.vence) || (creada + VIGENCIA),
       firma: isObj(raw.firma) ? { t: num(raw.firma.t), via: raw.firma.via === 'clave' ? 'clave' : 'face' } : null,
-      consulta: isObj(raw.consulta) ? { resultado: str(raw.consulta.resultado, 10), t: num(raw.consulta.t), via: raw.consulta.via === 'llegada' ? 'llegada' : 'consulta' } : null,
+      consulta: isObj(raw.consulta) ? { resultado: str(raw.consulta.resultado, 10), t: num(raw.consulta.t), via: raw.consulta.via === 'llegada' || raw.consulta.via === 'tele' ? raw.consulta.via : 'consulta' } : null,
       excepcion: isObj(raw.excepcion) ? { motivo: str(raw.excepcion.motivo, 80), t: num(raw.excepcion.t), trasFallo: raw.excepcion.trasFallo === true } : null,
       reconocida: raw.reconocida === true ? true : raw.reconocida === false ? false : null,
       retiro: null, alertas: [], historial: [], simulada: raw.simulada === true
@@ -845,13 +846,13 @@ td .sub.show-narrow { display: none; }
   }
   function normConfig(raw) {
     if (!isObj(raw)) return null;
-    return { modo: raw.modo === 'llegada' ? 'llegada' : 'consulta', t: num(raw.t), medicoFace: raw.medicoFace !== false, tm: num(raw.tm) };
+    return { modo: raw.modo === 'llegada' ? 'llegada' : 'consulta', t: num(raw.t), medicoFace: raw.medicoFace !== false, tm: num(raw.tm), tele: raw.tele === true };
   }
   function normLlegada(raw) {
     if (!isObj(raw) || !has(LLEGADA, raw.estado)) return null;
     var ev = Array.isArray(raw.eventos) ? raw.eventos.filter(isObj).slice(-20).map(function (x) { return { t: num(x.t), rol: has(ROLES, x.rol) ? x.rol : 'sistema', txt: str(x.txt, 300) }; }) : [];
     var ahora = Date.now();
-    return { estado: raw.estado, t: Math.min(num(raw.t), ahora), validada: Math.min(num(raw.validada), ahora), fallos: Math.max(0, Math.min(99, Math.floor(num(raw.fallos)))), eventos: ev };
+    return { estado: raw.estado, t: Math.min(num(raw.t), ahora), validada: Math.min(num(raw.validada), ahora), fallos: Math.max(0, Math.min(99, Math.floor(num(raw.fallos)))), eventos: ev, tele: raw.tele === true };
   }
   function normAll(src) {
     var out = { recetas: Object.create(null), afiliados: Object.create(null), revisiones: Object.create(null), config: Object.create(null), llegadas: Object.create(null) };
@@ -1087,6 +1088,8 @@ td .sub.show-narrow { display: none; }
       // La obra social decide si el médico firma con su Face ID (por defecto, sí) o con usuario y clave.
       medicoFace: function () { return has(state.config, 'validacion') ? state.config.validacion.medicoFace : true; },
       configTm: function () { return has(state.config, 'validacion') ? state.config.validacion.tm : 0; },
+      // El médico indica que está haciendo telemedicina: el paciente valida desde su casa y la ubicación no se exige.
+      tele: function () { return has(state.config, 'validacion') ? state.config.validacion.tele === true : false; },
       llegada: function (key) { return has(state.llegadas, key) ? state.llegadas[key] : null; },
       llegadas: function () { return state.llegadas; },
       writeConfig: writeConfig, writeLlegada: writeLlegada,
@@ -1154,9 +1157,9 @@ td .sub.show-narrow { display: none; }
         r.firma = { t: now, via: conFace ? 'face' : 'clave' };
         if (enModoLlegada() && tokenValido(afKey)) {
           var lg = Store.llegada(afKey);
-          r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: lg.validada, via: 'llegada' };
+          r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: lg.validada, via: lg.tele ? 'tele' : 'llegada' };
           log(r, 'medico', cap(elDr(MEDICO)) + ' (' + MEDICO.matricula + ') ' + como + ' la receta de ' + m.nombre + ' para ' + a.nombre + '.');
-          log(r, 'sistema', a.nombre + ' validó su llegada a las ' + hora(lg.validada) + ': la receta ' + r.id + ' se emitió con CUIR sin pedir otro Face ID y llegó a la app de ' + a.corto + '.');
+          log(r, 'sistema', a.nombre + (lg.tele ? ' validó su identidad por telemedicina a las ' : ' validó su llegada a las ') + hora(lg.validada) + ': la receta ' + r.id + ' se emitió con CUIR sin pedir otro Face ID y llegó a la app de ' + a.corto + '.');
         } else {
           log(r, 'medico', cap(elDr(MEDICO)) + ' (' + MEDICO.matricula + ') ' + como + ' y pidió el Face ID de ' + a.nombre + ' para ' + m.nombre + '.');
           if (enModoLlegada()) log(r, 'sistema', 'Sin llegada validada' + (turno(afKey) && turno(afKey).tipo === 'particular' ? ' (se atiende como particular)' : '') + ': el Face ID de ' + a.corto + ' se pide en la consulta.');
@@ -1170,12 +1173,20 @@ td .sub.show-narrow { display: none; }
       Store.writeReceta(r.id, r);
       return r.id;
     },
-    validarConsulta: function (id, coincide) {
+    // enConsultorio: dónde está el paciente (por defecto, en el consultorio). Desde otro lugar solo vale si el médico
+    // indicó que hace telemedicina; si no, la cara coincide pero la ubicación no: la receta no sale (devuelve 'lugar').
+    validarConsulta: function (id, coincide, enConsultorio) {
       var r = Store.receta(id); if (!r || r.estado !== 'esperando') return false;
-      var a = af(r.afiliado);
+      var a = af(r.afiliado), tele = Store.tele(), casa = enConsultorio === false;
+      if (coincide && casa && !tele) {
+        r.consulta = { resultado: 'lugar', t: Date.now(), via: 'consulta' };
+        log(r, 'paciente', 'Face ID: coincide con ' + a.nombre + ', pero la ubicación está fuera del consultorio y la consulta no es por telemedicina. La receta no se emite.');
+        Store.writeReceta(id, r);
+        return 'lugar';
+      }
       if (coincide) {
-        r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: Date.now() };
-        log(r, 'paciente', 'Face ID en la consulta: coincide con ' + a.nombre + '.');
+        r.estado = 'emitida'; r.consulta = { resultado: 'ok', t: Date.now(), via: tele ? 'tele' : 'consulta' };
+        log(r, 'paciente', tele ? 'Face ID por telemedicina (' + (casa ? 'desde su casa' : 'en el consultorio') + '): coincide con ' + a.nombre + '. En una teleconsulta la ubicación no se exige.' : 'Face ID en la consulta: coincide con ' + a.nombre + '.');
         log(r, 'sistema', 'Receta ' + r.id + ' emitida con CUIR y enviada a la app de ' + a.corto + '.');
       } else {
         r.estado = 'no_coincide'; r.consulta = { resultado: 'fail', t: Date.now() };
@@ -1195,8 +1206,9 @@ td .sub.show-narrow { display: none; }
       Store.writeReceta(id, r);
       return true;
     },
-    modo: function (m) { Store.writeConfig({ modo: m === 'llegada' ? 'llegada' : 'consulta', t: Date.now(), medicoFace: Store.medicoFace(), tm: Store.configTm() }); },
-    faceMedico: function (on) { Store.writeConfig({ modo: Store.config(), t: Store.configT(), medicoFace: !!on, tm: Date.now() }); },
+    modo: function (m) { Store.writeConfig({ modo: m === 'llegada' ? 'llegada' : 'consulta', t: Date.now(), medicoFace: Store.medicoFace(), tm: Store.configTm(), tele: Store.tele() }); },
+    faceMedico: function (on) { Store.writeConfig({ modo: Store.config(), t: Store.configT(), medicoFace: !!on, tm: Date.now(), tele: Store.tele() }); },
+    telemedicina: function (on) { Store.writeConfig({ modo: Store.config(), t: Store.configT(), medicoFace: Store.medicoFace(), tm: Store.configTm(), tele: !!on }); },
     // La recepción pide el Face ID de llegada; el paciente lo recibe en la app.
     pedirLlegada: function (afKey) {
       var tu = turno(afKey), prev = Store.llegada(afKey);
@@ -1207,15 +1219,17 @@ td .sub.show-narrow { display: none; }
       Store.writeLlegada(afKey, { estado: 'esperando', t: now, validada: 0, fallos: prev ? prev.fallos : 0, eventos: ev });
       return true;
     },
-    // El paciente valida su llegada desde la app (se lo pida o no la recepción).
-    validarLlegada: function (afKey, coincide) {
+    // El paciente valida su llegada desde la app (se lo pida o no la recepción). Con telemedicina, valida desde su casa.
+    validarLlegada: function (afKey, coincide, enConsultorio) {
       var tu = turno(afKey), prev = Store.llegada(afKey);
       if (!tu || tu.tipo !== 'os' || !enModoLlegada() || tokenValido(afKey) || rxPend(afKey)) return false;
       var now = Date.now(), a = af(afKey), ev = (prev ? prev.eventos : []).slice(), fallos = prev ? prev.fallos : 0;
-      if (coincide) ev.push({ t: now, rol: 'paciente', txt: 'Face ID de llegada: coincide con ' + a.nombre + '. ' + hastaLas(now + TOKEN_HORAS * 3600e3, true) + ', ' + elDr(MEDICO) + ' puede emitir sus recetas de este turno sin pedirle otro Face ID.' });
+      var tele = Store.tele(), casa = enConsultorio === false, lugarOk = !casa || tele, ok = coincide && lugarOk;
+      if (ok) ev.push({ t: now, rol: 'paciente', txt: (tele ? 'Face ID por telemedicina (' + (casa ? 'desde su casa' : 'en el consultorio') + '): coincide con ' : 'Face ID de llegada: coincide con ') + a.nombre + '. ' + hastaLas(now + TOKEN_HORAS * 3600e3, true) + ', ' + elDr(MEDICO) + ' puede emitir sus recetas de este turno sin pedirle otro Face ID.' });
+      else if (coincide) ev.push({ t: now, rol: 'paciente', txt: 'Face ID de llegada: coincide con ' + a.nombre + ', pero la ubicación está fuera del consultorio y la consulta no es por telemedicina. La llegada no se valida.' });
       else { fallos++; ev.push({ t: now, rol: 'paciente', txt: 'Face ID de llegada: la cara no coincide con ' + a.nombre + '. Si le hacen una receta, el Face ID se pide en la consulta.' }); }
-      Store.writeLlegada(afKey, { estado: coincide ? 'validada' : 'no_coincide', t: now, validada: coincide ? now : 0, fallos: fallos, eventos: ev.slice(-20) });
-      return true;
+      Store.writeLlegada(afKey, { estado: ok ? 'validada' : coincide ? 'fuera' : 'no_coincide', t: now, validada: ok ? now : 0, fallos: fallos, eventos: ev.slice(-20), tele: ok && tele });
+      return ok ? true : coincide ? 'lugar' : true;
     },
     noEmitir: function (id) {
       var r = Store.receta(id); if (!r || (r.estado !== 'esperando' && r.estado !== 'no_coincide')) return false;
@@ -1494,6 +1508,7 @@ td .sub.show-narrow { display: none; }
             '</select></label>' +
           '</div>' +
           '<div class="facts" id="m-facts"></div>' +
+          '<div class="q m-tele"><span class="q-l">Consulta</span><div id="m-tele"></div></div>' +
           '<button class="btn btn-primary btn-block" type="submit" id="m-submit">' + ICON.face + 'Firmar con Face ID</button>' +
           '<p class="hint" id="m-hint"></p>' +
         '</form>' +
@@ -1513,16 +1528,18 @@ td .sub.show-narrow { display: none; }
     // El botón y la ayuda dicen qué va a pasar al firmar, según la configuración de la obra social.
     function syncSubmit() {
       var a = af(ui.af), btn = root.querySelector('#m-submit'), hint = root.querySelector('#m-hint'), tu = turno(ui.af);
-      var directo = enModoLlegada() && tokenValido(ui.af), conFace = Store.medicoFace(), txt, ayuda;
+      var directo = enModoLlegada() && tokenValido(ui.af), conFace = Store.medicoFace(), tele = Store.tele(), txt, ayuda;
+      root.querySelector('#m-tele').innerHTML = seg('Modalidad de la consulta', 'tele', [['presencial', 'Presencial'], ['tele', 'Estoy haciendo telemedicina']], tele ? 'tele' : 'presencial');
       if (!conFace) {
         txt = 'Firmar con usuario y clave';
         ayuda = 'Tu obra social no pide Face ID al médico. Si firma otra persona con tu clave, el sistema no lo detecta.';
       } else if (directo) {
         txt = 'Firmar y emitir';
-        ayuda = a.corto + ' validó su llegada a las ' + hora(Store.llegada(ui.af).validada) + ': la receta sale sin otro Face ID.';
+        ayuda = a.corto + (Store.llegada(ui.af).tele ? ' validó su identidad por telemedicina a las ' : ' validó su llegada a las ') + hora(Store.llegada(ui.af).validada) + ': la receta sale sin otro Face ID.';
       } else {
         txt = 'Firmar con Face ID';
-        ayuda = enModoLlegada() && tu && tu.tipo === 'particular' ? a.corto + ' viene como particular: valida con Face ID en la consulta.'
+        ayuda = tele ? 'Telemedicina: después de tu firma, a ' + a.corto + ' le llega el pedido de Face ID y lo valida desde su casa. La ubicación no se marca como incorrecta.'
+          : enModoLlegada() && tu && tu.tipo === 'particular' ? a.corto + ' viene como particular: valida con Face ID en la consulta.'
           : 'Después de tu firma, a ' + a.corto + ' le llega el pedido de Face ID en la app. La receta sale cuando lo valida.';
       }
       if (!ui.busy) btn.innerHTML = (conFace ? ICON.face : ICON.shield) + esc(txt);
@@ -1532,16 +1549,17 @@ td .sub.show-narrow { display: none; }
       var host = root.querySelector('#m-recep');
       if (!enModoLlegada()) { host.hidden = true; host.innerHTML = ''; return; }
       host.hidden = false;
-      host.innerHTML = '<div class="card turnos"><div class="card-h"><h3>Recepción · turnos de hoy</h3><span class="aside">La obra social pide validar la llegada</span></div><div class="rows">' +
+      host.innerHTML = '<div class="card turnos"><div class="card-h"><h3>Recepción · turnos de hoy</h3><span class="aside">' + (Store.tele() ? 'Telemedicina: validan desde su casa' : 'La obra social pide validar la llegada') + '</span></div><div class="rows">' +
         AGENDA.map(function (tu) {
           var a = af(tu.af), l = Store.llegada(tu.af), sub = tu.tipo === 'os' ? 'Obra social' : 'Particular (no usa la obra social para la consulta): valida en la consulta', act = '';
           if (tu.tipo === 'os') {
-            if (tokenValido(tu.af)) act = '<span class="chip t-ok">Validada ' + hora(l.validada) + '</span>';
+            if (tokenValido(tu.af)) act = '<span class="chip t-ok">Validada ' + hora(l.validada) + (l.tele ? ' · tele' : '') + '</span>';
             else if (rxPend(tu.af)) sub = 'Obra social · Face ID pedido en la consulta';
             else if (l && l.estado === 'esperando') act = '<span class="chip t-info">Pedido enviado</span>';
             else {
               if (l && l.estado === 'no_coincide') sub = 'Obra social · la cara no coincidió';
-              act = '<button class="btn btn-ghost btn-sm" type="button" data-act="pedir-llegada" data-v="' + tu.af + '">' + (l && l.estado === 'no_coincide' ? 'Reintentar' : 'Pedir Face ID') + '</button>';
+              if (l && l.estado === 'fuera') sub = 'Obra social · validó fuera del consultorio';
+              act = '<button class="btn btn-ghost btn-sm" type="button" data-act="pedir-llegada" data-v="' + tu.af + '">' + (l && (l.estado === 'no_coincide' || l.estado === 'fuera') ? 'Reintentar' : 'Pedir Face ID') + '</button>';
             }
           }
           return '<div class="row" data-id="llegada-' + tu.af + '"><span class="who"><b>' + esc(a.nombre) + '</b><small>' + esc(sub) + '</small></span><span class="turno-act">' + act + '</span></div>';
@@ -1582,6 +1600,10 @@ td .sub.show-narrow { display: none; }
       var b = e.target.closest('[data-act]'); if (!b || !root.contains(b) || b.disabled) return;
       var act = b.getAttribute('data-act'), id = b.getAttribute('data-rx');
       if (act === 'firmante') { ui.firmante = b.getAttribute('data-v') === 'secretaria' ? 'secretaria' : 'medico'; keep(syncForm); }
+      if (act === 'tele') {
+        var on = b.getAttribute('data-v') === 'tele';
+        if (on !== Store.tele()) { Acciones.telemedicina(on); toast(on ? 'Telemedicina: el paciente valida con Face ID desde su casa y la ubicación no se marca como incorrecta.' : 'Consulta presencial: el paciente valida en el consultorio.', 'info'); }
+      }
       if (act === 'pedir-llegada') { var k = b.getAttribute('data-v'); if (Acciones.pedirLlegada(k)) toast('Pedido de Face ID de llegada enviado a la app de ' + af(k).corto + '.', 'info'); }
       if (act === 'excepcion') { var s = root.querySelector('#m-motivo'); if (Acciones.excepcion(id, s ? s.value : MOTIVOS[0])) { toast('Emitida con excepción: queda una alerta y le llega un aviso al paciente.', 'warn'); focusSoon(root, '#m-live h4'); } }
       if (act === 'no-emitir') { if (Acciones.noEmitir(id)) { toast('La receta no se emitió.', 'bad'); focusSoon(root, '#m-live h4'); } }
@@ -1604,6 +1626,12 @@ td .sub.show-narrow { display: none; }
         icon = '<span class="pulse">' + ICON.face + '</span>';
         title = 'Esperando el Face ID de ' + a.nombre;
         body = 'Le llegó el pedido a su app. La receta se emite cuando valide su identidad.';
+        if (r.consulta && r.consulta.resultado === 'lugar') {
+          icon = '<span class="badge warn">' + ICON.alertL + '</span>';
+          title = a.nombre + ' validó fuera del consultorio';
+          body = Store.tele() ? 'La cara coincidió, pero no estaba en el consultorio. Ya marcaste telemedicina: pedile que valide de nuevo desde su casa.'
+            : 'La cara coincide, pero la ubicación no: no está en el consultorio. Si la consulta es por telemedicina, elegí «Estoy haciendo telemedicina» y pedile que valide de nuevo.';
+        }
         extra = '<details><summary>¿No puede validar? Emitir con excepción</summary><div class="inline-form">' + motivoSel +
           '<button class="btn btn-warn" type="button" data-act="excepcion" data-rx="' + esc(r.id) + '">Emitir con excepción</button></div></details>' +
           '<button class="link" type="button" data-act="no-emitir" data-rx="' + esc(r.id) + '">No emitir la receta</button>';
@@ -1618,7 +1646,7 @@ td .sub.show-narrow { display: none; }
         icon = '<span class="badge ' + (w ? 'warn' : 'ok') + '">' + (w ? ICON.alertL : ICON.checkL) + '</span>';
         title = w ? 'Receta emitida con alerta' : 'Receta emitida';
         body = w ? 'Excepción: ' + (r.excepcion ? r.excepcion.motivo : '') + '. ' + (r.reconocida ? a.corto + ' la reconoció desde la app.' : 'Esperando que ' + a.corto + ' confirme desde la app que la reconoce.')
-          : (r.consulta && r.consulta.via === 'llegada' ? 'Identidad validada al llegar (' + hora(r.consulta.t) + '). ' : 'Identidad validada con Face ID. ') + 'Ya está en la app de ' + a.corto + ' y en la obra social.';
+          : (r.consulta && r.consulta.via === 'tele' ? 'Identidad validada con Face ID por telemedicina (' + hora(r.consulta.t) + '). ' : r.consulta && r.consulta.via === 'llegada' ? 'Identidad validada al llegar (' + hora(r.consulta.t) + '). ' : 'Identidad validada con Face ID. ') + 'Ya está en la app de ' + a.corto + ' y en la obra social.';
       } else if (r.estado === 'rechazada') {
         icon = '<span class="badge bad">' + ICON.xL + '</span>'; title = 'Receta no emitida'; body = 'Quedó registrado el intento.';
       } else if (r.estado === 'anulada') {
@@ -1639,7 +1667,7 @@ td .sub.show-narrow { display: none; }
       recepcion(); syncSubmit();
       // Cuando un paciente valida su llegada, el panel muestra el botón de firmar; si falla, o si cambia la configuración, muestra Recepción.
       var validas = AGENDA.filter(function (tu) { return tokenValido(tu.af); }).length;
-      var fallos = AGENDA.filter(function (tu) { var l = Store.llegada(tu.af); return l && l.estado === 'no_coincide'; }).length;
+      var fallos = AGENDA.filter(function (tu) { var l = Store.llegada(tu.af); return l && (l.estado === 'no_coincide' || l.estado === 'fuera'); }).length;
       var hay = changed && changed.length;
       if (hay && enModoLlegada() && changed.indexOf('config') > -1 && lastModo !== null && Store.config() !== lastModo) revealIn(root, '#m-recep');
       else if (hay && enModoLlegada() && lastFallos !== null && fallos > lastFallos) revealIn(root, '#m-recep');
@@ -1668,9 +1696,9 @@ td .sub.show-narrow { display: none; }
 
   /* ---------- paciente ---------- */
   function PanelPaciente(root) {
-    var ui = { af: 'rosa', camara: 'yo', busy: false }, primera = true;
+    var ui = { af: 'rosa', camara: 'yo', lugar: 'consultorio', busy: false }, primera = true;
     root.innerHTML = head('paciente', 'Mi Obra Social', 'App del afiliado · con Huella Clínica', '<span class="head-tag">' + hora(Date.now()) + '</span>') +
-      simTray(simQ('Celular de', '<span id="p-who"></span>') + simQ('Frente a la cámara', '<span id="p-cam"></span>')) +
+      simTray(simQ('Celular de', '<span id="p-who"></span>') + simQ('Frente a la cámara', '<span id="p-cam"></span>') + simQ('Dónde está', '<span id="p-lugar"></span>')) +
       '<div class="p-body phone-body">' + purpose('Así lo ve el afiliado en la app de su obra social: valida con Face ID, recibe la receta con QR y avisa si algo no es suyo.') + '<div id="p-main" class="stack"></div></div>';
     function who() { APP_AF = ui.af; root.querySelector('#p-who').innerHTML = seg('Simulador: de quién es el celular', 'ver-af', DEMO_AF.map(function (k) { return [k, AFILIADOS[k].corto]; }), ui.af); }
     who();
@@ -1679,24 +1707,29 @@ td .sub.show-narrow { display: none; }
       var act = b.getAttribute('data-act');
       if (act === 'ver-af') { var v = b.getAttribute('data-v'); if (DEMO_AF.indexOf(v) > -1) { ui.af = v; seenT = Date.now(); keep(function () { who(); renderAll([]); }); } }
       if (act === 'camara') { ui.camara = b.getAttribute('data-v') === 'otra' ? 'otra' : 'yo'; keep(render); }
+      if (act === 'lugar') { ui.lugar = b.getAttribute('data-v') === 'casa' ? 'casa' : 'consultorio'; keep(render); }
       if (act === 'escanear' && !ui.busy) {
-        var id = b.getAttribute('data-rx'), a = af(ui.af), yo = ui.camara === 'yo';
+        var id = b.getAttribute('data-rx'), a = af(ui.af), yo = ui.camara === 'yo', enC = ui.lugar === 'consultorio', fuera = yo && !enC && !Store.tele();
         ui.busy = true;
-        faceScan(root, yo ? a : OTRA_CARA, yo ? 'ok' : 'bad', yo ? ['Rostro reconocido', 'Coincide con ' + a.nombre] : ['No coincide', 'La cara no es la de ' + a.nombre])
+        faceScan(root, yo ? a : OTRA_CARA, !yo ? 'bad' : fuera ? 'warn' : 'ok', !yo ? ['No coincide', 'La cara no es la de ' + a.nombre] : fuera ? ['Fuera del consultorio', 'La cara coincide, pero no estás en el consultorio'] : ['Rostro reconocido', 'Coincide con ' + a.nombre], lugarScan(enC))
           .then(function () {
             ui.busy = false; ui.camara = 'yo';
-            if (Acciones.validarConsulta(id, yo)) toast(yo ? 'Validado. La receta se emitió.' : 'La cara no coincide: decide el médico.', yo ? 'ok' : 'bad');
+            var res = Acciones.validarConsulta(id, yo, enC);
+            if (res === 'lugar') toast('Estás fuera del consultorio y la consulta no es por telemedicina: la receta no se emite.', 'warn');
+            else if (res) toast(yo ? (Store.tele() && !enC ? 'Validado desde tu casa (telemedicina). La receta se emitió.' : 'Validado. La receta se emitió.') : 'La cara no coincide: decide el médico.', yo ? 'ok' : 'bad');
             else toast('Esta receta ya cambió de estado.', 'info');
             focusSoon(root, '#p-main .card h4, #p-main .card-h h3');
           });
       }
       if (act === 'escanear-llegada' && !ui.busy) {
-        var ak = ui.af, al = af(ak), yo2 = ui.camara === 'yo';
+        var ak = ui.af, al = af(ak), yo2 = ui.camara === 'yo', enC2 = ui.lugar === 'consultorio', fuera2 = yo2 && !enC2 && !Store.tele();
         ui.busy = true;
-        faceScan(root, yo2 ? al : OTRA_CARA, yo2 ? 'ok' : 'bad', yo2 ? ['Llegada validada', 'Coincide con ' + al.nombre] : ['No coincide', 'La cara no es la de ' + al.nombre], 'Validación facial · ubicación: en el consultorio')
+        faceScan(root, yo2 ? al : OTRA_CARA, !yo2 ? 'bad' : fuera2 ? 'warn' : 'ok', !yo2 ? ['No coincide', 'La cara no es la de ' + al.nombre] : fuera2 ? ['Fuera del consultorio', 'La cara coincide, pero no estás en el consultorio'] : [Store.tele() ? 'Identidad validada' : 'Llegada validada', 'Coincide con ' + al.nombre], lugarScan(enC2))
           .then(function () {
             ui.busy = false; ui.camara = 'yo';
-            if (Acciones.validarLlegada(ak, yo2)) toast(yo2 ? 'Llegada validada: ' + hastaLas(tokenHasta(ak)) + ', el Dr. Ruiz puede emitir tus recetas sin pedirte otro Face ID.' : 'La cara no coincide: la llegada no se validó.', yo2 ? 'ok' : 'bad');
+            var res2 = Acciones.validarLlegada(ak, yo2, enC2);
+            if (res2 === 'lugar') toast('Estás fuera del consultorio y la consulta no es por telemedicina: la llegada no se validó.', 'warn');
+            else if (res2) toast(yo2 ? (Store.tele() ? 'Identidad validada por telemedicina: ' : 'Llegada validada: ') + hastaLas(tokenHasta(ak)) + ', el Dr. Ruiz puede emitir tus recetas sin pedirte otro Face ID.' : 'La cara no coincide: la llegada no se validó.', yo2 ? 'ok' : 'bad');
             else toast('La validación de llegada ya cambió.', 'info');
             focusSoon(root, '#p-main .card h4, #p-main .card-h h3');
           });
@@ -1710,6 +1743,8 @@ td .sub.show-narrow { display: none; }
       if (act === 'quitar') { Acciones.delegar(ui.af, false); toast('Quitaste la autorización de retiro.', 'info'); }
     });
 
+    // El texto chico del escaneo dice dónde está el paciente y si la ubicación cuenta.
+    function lugarScan(enC) { return enC ? 'Validación facial · ubicación: en el consultorio' : Store.tele() ? 'Validación facial · telemedicina: desde su casa (la ubicación no se exige)' : 'Validación facial · ubicación: fuera del consultorio'; }
     var lastPend = 0;
     var seenT = 0;
     function pendiente(r) { return r.estado === 'esperando' || porConfirmar(r); }
@@ -1736,22 +1771,23 @@ td .sub.show-narrow { display: none; }
       var a = af(ui.af), all = Store.recetas().filter(function (r) { return r.afiliado === ui.af && r.estado !== 'firma_rechazada'; });
       var del = Store.delegado(ui.af), top = '', tu = turno(ui.af), lleg = Store.llegada(ui.af);
       root.querySelector('#p-cam').innerHTML = seg('Simulador: quién está frente a la cámara', 'camara', [['yo', a.corto], ['otra', 'Otra persona']], ui.camara);
+      root.querySelector('#p-lugar').innerHTML = seg('Simulador: dónde está el paciente', 'lugar', [['consultorio', 'En el consultorio'], ['casa', 'En su casa']], ui.lugar);
       // La consulta particular no pasa por la obra social: su app no la muestra.
       if (enModoLlegada() && tu && tu.tipo === 'os' && (tokenValido(ui.af) || !rxPend(ui.af))) {
-        var conDr = 'Turno de hoy con ' + elDr(MEDICO);
+        var conDr = 'Turno de hoy con ' + elDr(MEDICO) + (Store.tele() ? ', por telemedicina' : '');
         if (tokenValido(ui.af)) {
-          top += '<div class="card llegada-ok"><div class="req-top"><span class="badge ok">' + ICON.checkL + '</span><div class="req-txt"><h4>Llegada validada · ' + hora(lleg.validada) + '</h4><p>' + esc(conDr) + '. ' + hastaLas(tokenHasta(ui.af), true) + ' puede emitir tus recetas sin pedirte otro Face ID.</p></div></div></div>';
+          top += '<div class="card llegada-ok"><div class="req-top"><span class="badge ok">' + ICON.checkL + '</span><div class="req-txt"><h4>' + (lleg.tele ? 'Identidad validada por telemedicina · ' : 'Llegada validada · ') + hora(lleg.validada) + '</h4><p>' + esc(conDr) + '. ' + hastaLas(tokenHasta(ui.af), true) + ' puede emitir tus recetas sin pedirte otro Face ID.</p></div></div></div>';
         } else {
           var pedida = lleg && lleg.estado === 'esperando';
           top += '<div class="card llegada' + (pedida ? ' request' : '') + '" data-id="llegada-' + ui.af + '"><div class="req-top"><span class="pulse pulse-acc">' + ICON.face + '</span>' +
-            '<div class="req-txt"><h4>Validá tu llegada</h4><p>' + esc(conDr) + '. ' + (pedida ? 'La recepción te pide validar tu identidad: así el médico emite tus recetas sin pedirte otro Face ID.' : 'Al llegar al consultorio, validá tu identidad: así el médico emite tus recetas sin pedirte otro Face ID.') + (lleg && lleg.estado === 'no_coincide' ? ' El último intento no coincidió.' : '') + '</p></div></div>' +
-            '<button class="btn btn-primary btn-block" type="button" data-act="escanear-llegada">' + ICON.face + 'Validar llegada con Face ID</button></div>';
+            '<div class="req-txt"><h4>' + (Store.tele() ? 'Validá tu identidad' : 'Validá tu llegada') + '</h4><p>' + esc(conDr) + '. ' + (Store.tele() ? 'Validá desde tu casa: así el médico emite tus recetas sin pedirte otro Face ID.' : pedida ? 'La recepción te pide validar tu identidad: así el médico emite tus recetas sin pedirte otro Face ID.' : 'Al llegar al consultorio, validá tu identidad: así el médico emite tus recetas sin pedirte otro Face ID.') + (lleg && lleg.estado === 'no_coincide' ? ' El último intento no coincidió.' : lleg && lleg.estado === 'fuera' ? ' El último intento fue fuera del consultorio.' : '') + '</p></div></div>' +
+            '<button class="btn btn-primary btn-block" type="button" data-act="escanear-llegada">' + ICON.face + (Store.tele() ? 'Validar con Face ID' : 'Validar llegada con Face ID') + '</button></div>';
         }
       }
       all.filter(function (r) { return r.estado === 'esperando'; }).forEach(function (pend) {
         var m = med(pend.med);
         top += '<div class="card request" data-id="' + esc(pend.id) + '"><div class="req-top"><span class="pulse pulse-acc">' + ICON.face + '</span>' +
-          '<div class="req-txt"><h4>Validá tu identidad</h4><p>' + esc(cap(elDr(medico(pend.medicoId)))) + ' quiere emitir tu receta de ' + esc(m.nombre) + '. Validá con Face ID que sos vos para que salga.</p></div></div>' +
+          '<div class="req-txt"><h4>Validá tu identidad</h4><p>' + esc(cap(elDr(medico(pend.medicoId)))) + ' quiere emitir tu receta de ' + esc(m.nombre) + (Store.tele() ? ' (teleconsulta). Validá con Face ID desde tu casa para que salga.' : '. Validá con Face ID que sos vos para que salga.') + (pend.consulta && pend.consulta.resultado === 'lugar' ? ' El último intento fue fuera del consultorio' + (Store.tele() ? '; ahora es teleconsulta: podés validar desde tu casa.' : ': si es una teleconsulta, el médico tiene que indicarlo.') : '') + '</p></div></div>' +
           '<button class="btn btn-primary btn-block" type="button" data-act="escanear" data-rx="' + esc(pend.id) + '">' + ICON.face + 'Validar con Face ID</button></div>';
       });
       all.filter(porConfirmar).forEach(function (r) {
@@ -1867,7 +1903,7 @@ td .sub.show-narrow { display: none; }
       if (r.estado === 'esperando' || r.estado === 'no_coincide') { checks += check('bad', 'No emitida', 'Falta la validación del paciente en la consulta'); motivo = motivo || 'todavía no se emitió'; }
       else if (r.estado === 'rechazada' || r.estado === 'firma_rechazada') { checks += check('bad', 'No emitida', 'La receta nunca se emitió'); motivo = motivo || 'nunca se emitió'; }
       else if (r.estado === 'anulada') { checks += check('bad', 'Anulada', af(r.afiliado).corto + ' no la reconoció desde la app'); motivo = motivo || af(r.afiliado).corto + ' no la reconoció'; }
-      else checks += r.excepcion ? check(r.reconocida === true ? 'ok' : 'warn', 'Emitida con excepción', '«' + r.excepcion.motivo + '» · ' + (r.reconocida === true ? af(r.afiliado).corto + ' la reconoció' : r.reconocida === false ? af(r.afiliado).corto + ' no la reconoce' : 'falta que ' + af(r.afiliado).corto + ' la confirme')) : check('ok', 'Emitida', r.consulta && r.consulta.via === 'llegada' ? 'Con Face ID del paciente al llegar al consultorio' : 'Con Face ID del paciente en la consulta');
+      else checks += r.excepcion ? check(r.reconocida === true ? 'ok' : 'warn', 'Emitida con excepción', '«' + r.excepcion.motivo + '» · ' + (r.reconocida === true ? af(r.afiliado).corto + ' la reconoció' : r.reconocida === false ? af(r.afiliado).corto + ' no la reconoce' : 'falta que ' + af(r.afiliado).corto + ' la confirme')) : check('ok', 'Emitida', r.consulta && r.consulta.via === 'tele' ? 'Con Face ID del paciente por telemedicina (desde su casa)' : r.consulta && r.consulta.via === 'llegada' ? 'Con Face ID del paciente al llegar al consultorio' : 'Con Face ID del paciente en la consulta');
       checks += ahora <= r.vence ? check('ok', 'Vigente', 'Hasta el ' + fecha(r.vence)) : check('bad', 'Vencida', 'Venció el ' + fecha(r.vence));
       if (ahora > r.vence) motivo = motivo || 'está vencida';
       if (r.retiro) { checks += check('bad', 'Ya usada', 'Dispensada el ' + fecha(r.retiro.t) + ' a las ' + hora(r.retiro.t) + ' en ' + farmacia(r.retiro.farmaciaId).nombre); motivo = motivo || 'ya se dispensó'; }
@@ -2244,12 +2280,14 @@ td .sub.show-narrow { display: none; }
         if (lg.estado === 'esperando') s = ['paciente', 2, 'En la app de ' + corto + ', tocá «Validar llegada con Face ID».'];
         else if (lg.estado === 'validada' && tokenValido(lk)) s = ['medico', 3, corto + ' ya validó su llegada. En «Nueva receta» elegí a ' + corto + ' y firmá: sale sin otro Face ID.'];
         else if (lg.estado === 'validada') s = ['medico', 1, 'La llegada de ' + corto + ' venció: en Recepción, pedí de nuevo su Face ID.'];
+        else if (lg.estado === 'fuera') s = ['medico', 2, corto + ' validó fuera del consultorio. Si es una teleconsulta, en «Nueva receta» elegí «Estoy haciendo telemedicina» y tocá «Reintentar» en Recepción.'];
         else s = ['medico', 2, 'La cara no coincidió al llegar y la obra social ya tiene la señal. Tocá «Reintentar» en Recepción, o firmá igual: el Face ID se pide en la consulta.'];
       }
       if (s) { /* ya está */ }
       else if (!r) s = ['medico', 1, conFace ? 'Elegí paciente y medicamento y tocá «Firmar con Face ID». Para ver el bloqueo, antes elegí «Secretaria» en el Simulador.' : 'Elegí paciente y medicamento y tocá «Firmar con usuario y clave». Con «Secretaria» en el Simulador, la firma pasa igual.'];
       else if (r.estado === 'firma_rechazada') s = ['medico', 1, 'Firma bloqueada: no era el titular de la matrícula y la obra social ya tiene la alerta. Volvé a «Dr. Ruiz» en el Simulador y firmá.'];
-      else if (r.estado === 'esperando') s = ['paciente', 2, 'En la app de ' + X + ', tocá «Validar con Face ID». Si en el Simulador elegís «Otra persona», no coincide.'];
+      else if (r.estado === 'esperando' && r.consulta && r.consulta.resultado === 'lugar' && !Store.tele()) s = ['medico', 2, X + ' validó desde su casa y la receta no salió. Si es una teleconsulta, en «Nueva receta» elegí «Estoy haciendo telemedicina» y que ' + X + ' valide de nuevo.'];
+      else if (r.estado === 'esperando') s = ['paciente', 2, 'En la app de ' + X + ', tocá «Validar con Face ID». En el Simulador, «Otra persona» no coincide y «En su casa» sin telemedicina queda fuera del consultorio.'];
       else if (r.estado === 'no_coincide') s = ['medico', 2, 'La cara no coincidió. El médico decide: emitir con excepción (deja una alerta y le avisa al paciente) o no emitir.'];
       else if (r.estado === 'emitida_alerta' && porConfirmar(r)) s = ['paciente', 3, 'Salió con excepción: a ' + X + ' le llegó un aviso. «No la reconozco» la anula; «Sí, es mía» la deja lista para la farmacia.'];
       else if (dispensable(r)) s = ['farmacia', 3, 'Elegí la receta de ' + X + ': se valida el QR. Después, en el Simulador, elegí quién vino a retirar y validá su Face ID.'];
