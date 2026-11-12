@@ -823,8 +823,10 @@ td .sub.show-narrow { display: none; }
       consulta: isObj(raw.consulta) ? { resultado: str(raw.consulta.resultado, 10), t: num(raw.consulta.t), via: raw.consulta.via === 'llegada' || raw.consulta.via === 'tele' ? raw.consulta.via : 'consulta' } : null,
       excepcion: isObj(raw.excepcion) ? { motivo: str(raw.excepcion.motivo, 80), t: num(raw.excepcion.t), trasFallo: raw.excepcion.trasFallo === true } : null,
       reconocida: raw.reconocida === true ? true : raw.reconocida === false ? false : null,
-      retiro: null, alertas: [], historial: [], simulada: raw.simulada === true
+      retiro: null, alertas: [], historial: [], intentos: [], simulada: raw.simulada === true
     };
+    // Intentos de retiro denegados (quien vino no era el afiliado ni un familiar autorizado): no se entregó nada.
+    if (Array.isArray(raw.intentos)) r.intentos = raw.intentos.filter(isObj).slice(-20).map(function (x) { return { t: num(x.t), nombre: str(x.nombre, 80), farmaciaId: str(x.farmaciaId, 40) }; });
     if (isObj(raw.retiro)) {
       var q = raw.retiro.quien;
       r.retiro = { quien: q === 'afiliado' || q === 'familiar' ? q : 'otra', nombre: str(raw.retiro.nombre, 80), farmaciaId: str(raw.retiro.farmaciaId, 40),
@@ -1122,7 +1124,7 @@ td .sub.show-narrow { display: none; }
   function nuevaReceta(id, afKey, medId, medicoId, t) {
     var m = med(medId);
     return { id: id, afiliado: afKey, med: medId, cie: m.cie, medicoId: medicoId, estado: 'esperando', creada: t, actualizada: t, vence: t + VIGENCIA,
-      firma: null, consulta: null, excepcion: null, reconocida: null, retiro: null, alertas: [], historial: [] };
+      firma: null, consulta: null, excepcion: null, reconocida: null, retiro: null, alertas: [], historial: [], intentos: [] };
   }
   // Registra la dispensa en la receta (también la usa la actividad de ejemplo).
   function aplicarRetiro(r, quien, nombreRetira, relacion, farmaciaId, t) {
@@ -1144,6 +1146,15 @@ td .sub.show-narrow { display: none; }
       alertaAt(r, t, 'tercero', nombreRetira + ' se validó con su DNI pero no tiene autorización de ' + a.corto + ': se dispensó sin cobertura.');
       logAt(r, t, 'farmacia', f.nombre + ': retiró ' + nombreRetira + ', sin autorización de ' + a.corto + '. Se dispensó sin cobertura. Comprobante ' + c + '.');
     }
+  }
+
+  // Alguien que no es el afiliado ni un familiar autorizado quiso retirar: se deniega, no se entrega nada y la receta
+  // sigue lista para el titular (o su familiar autorizado). Queda la alerta para la obra social y el aviso al afiliado.
+  function denegarAt(r, nombre, farmaciaId, t) {
+    var a = af(r.afiliado), f = farmacia(farmaciaId);
+    r.intentos = (r.intentos || []).concat([{ t: t, nombre: nombre, farmaciaId: farmaciaId }]);
+    alertaAt(r, t, 'tercero', 'Retiro denegado en ' + f.nombre + ': ' + nombre + ' no es ' + a.nombre + ' ni un familiar autorizado. No se entregó.');
+    logAt(r, t, 'farmacia', f.nombre + ': ' + nombre + ' quiso retirar la receta, pero no es ' + a.nombre + ' ni un familiar autorizado. Retiro denegado: no se entregó.');
   }
 
   var Acciones = {
@@ -1263,7 +1274,13 @@ td .sub.show-narrow { display: none; }
         if (!fam) return false;
         aplicarRetiro(r, 'familiar', fam.nombre, fam.relacion, FARMACIA_ID, Date.now());
       } else if (quien === 'afiliado') aplicarRetiro(r, 'afiliado', '', '', FARMACIA_ID, Date.now());
-      else aplicarRetiro(r, 'otra', TERCERO.nombre, '', FARMACIA_ID, Date.now());
+      else return false; // a quien no está autorizado no se le entrega: ver denegar
+      Store.writeReceta(id, r);
+      return true;
+    },
+    denegar: function (id) {
+      var r = Store.receta(id); if (!dispensable(r)) return false;
+      denegarAt(r, TERCERO.nombre, FARMACIA_ID, Date.now());
       Store.writeReceta(id, r);
       return true;
     },
@@ -1296,14 +1313,21 @@ td .sub.show-narrow { display: none; }
         }
         if (o.ret) {
           var tr = t + o.ret.en * M;
-          aplicarRetiro(r, o.ret.quien, o.ret.quien === 'otra' ? TERCERO.nombre : '', '', o.ret.f, tr);
+          if (o.ret.quien === 'otra') denegarAt(r, TERCERO.nombre, o.ret.f, tr);
+          else aplicarRetiro(r, o.ret.quien, '', '', o.ret.f, tr);
           r.actualizada = tr;
         }
         if (o.noRec) {
           var tn = r.actualizada + 20 * M;
           r.reconocida = false;
-          alertaAt(r, tn, 'desconocida', a.nombre + ' no reconoce una receta emitida con excepción que ya se retiró.');
-          logAt(r, tn, 'paciente', a.nombre + ' no reconoce la receta, que ya se había retirado en la farmacia.');
+          if (r.retiro) {
+            alertaAt(r, tn, 'desconocida', a.nombre + ' no reconoce una receta emitida con excepción que ya se retiró.');
+            logAt(r, tn, 'paciente', a.nombre + ' no reconoce la receta, que ya se había retirado en la farmacia.');
+          } else {
+            r.estado = 'anulada';
+            alertaAt(r, tn, 'desconocida', a.nombre + ' no reconoce la receta emitida con excepción. Quedó anulada.');
+            logAt(r, tn, 'paciente', a.nombre + ' no reconoce la receta: quedó anulada y no se puede dispensar.');
+          }
           r.actualizada = tn;
         }
         list.push(r);
@@ -1349,30 +1373,37 @@ td .sub.show-narrow { display: none; }
     function unDr(drs) { var k = Object.keys(drs); return k.length === 1 ? medico(k[0]) : null; }
     var porFarm = Object.create(null);
     all.forEach(function (r) {
-      if (!r.retiro || !has(FARMACIAS, r.retiro.farmaciaId)) return;
-      var k = r.retiro.farmaciaId + '|' + med(r.med).id;
-      var p = porFarm[k] = porFarm[k] || { n: 0, drs: Object.create(null) };
-      p.n++; p.drs[r.medicoId] = 1;
+      var donde = (r.retiro ? [r.retiro.farmaciaId] : []).concat((r.intentos || []).map(function (x) { return x.farmaciaId; }));
+      donde.forEach(function (fid) {
+        if (!has(FARMACIAS, fid)) return;
+        var k = fid + '|' + med(r.med).id;
+        var p = porFarm[k] = porFarm[k] || { n: 0, drs: Object.create(null) };
+        p.n++; p.drs[r.medicoId] = 1;
+      });
     });
     Object.keys(porFarm).forEach(function (k) {
       var p = porFarm[k]; if (p.n < 5) return;
       var q = k.split('|'), f = farmacia(q[0]), m = med(q[1]), dr = unDr(p.drs);
-      out.push({ key: 'farm-' + q[0] + '-' + m.id, tipo: 'Farmacia', titulo: f.nombre + ' · concentra un medicamento', detalle: p.n + ' dispensas de ' + m.nombre + ' en el día' + (dr ? ', todas de recetas ' + delDr(dr) + '.' : '.'), nivel: 'media' });
+      out.push({ key: 'farm-' + q[0] + '-' + m.id, tipo: 'Farmacia', titulo: f.nombre + ' · concentra un medicamento', detalle: p.n + ' retiros o intentos de retiro de ' + m.nombre + ' en el día' + (dr ? ', todos de recetas ' + delDr(dr) + '.' : '.'), nivel: 'media' });
     });
     var porPersona = Object.create(null);
-    all.forEach(function (r) {
-      if (!r.retiro || r.retiro.quien === 'afiliado' || !r.retiro.nombre) return;
-      var k = slug(r.retiro.nombre.replace(/\s*\(.*\)$/, ''));
+    function persona(nombre, r, sinAut) {
+      var k = slug(nombre.replace(/\s*\(.*\)$/, ''));
       if (!k) return;
-      var p = porPersona[k] = porPersona[k] || { nombre: r.retiro.nombre.replace(/\s*\(.*\)$/, ''), afs: Object.create(null), drs: Object.create(null), sinAut: 0 };
+      var p = porPersona[k] = porPersona[k] || { nombre: nombre.replace(/\s*\(.*\)$/, ''), afs: Object.create(null), drs: Object.create(null), sinAut: 0 };
       p.afs[r.afiliado] = 1; // afs y drs son mapas sin prototipo
       p.drs[r.medicoId] = 1;
-      if (r.retiro.quien === 'otra') p.sinAut++;
+      if (sinAut) p.sinAut++;
+    }
+    all.forEach(function (r) {
+      if (r.retiro && r.retiro.quien !== 'afiliado' && r.retiro.nombre) persona(r.retiro.nombre, r, r.retiro.quien === 'otra');
+      (r.intentos || []).forEach(function (x) { if (x.nombre) persona(x.nombre, r, true); });
     });
     Object.keys(porPersona).forEach(function (k) {
       var p = porPersona[k], n = Object.keys(p.afs).length, dr = unDr(p.drs);
       if (n < 3) return;
-      out.push({ key: 'per-' + k, tipo: 'Persona', titulo: p.nombre + ' · retira para muchos afiliados', detalle: 'Retiró para ' + n + ' afiliados distintos' + (p.sinAut ? ', ' + p.sinAut + ' sin autorización.' : '.') + (dr ? ' Recetas ' + delDr(dr) + '.' : ''), nivel: p.sinAut ? 'alta' : 'media' });
+      out.push({ key: 'per-' + k, tipo: 'Persona', titulo: p.nombre + (p.sinAut ? ' · intenta retirar para muchos afiliados' : ' · retira para muchos afiliados'),
+        detalle: (p.sinAut ? 'Intentó retirar recetas de ' + n + ' afiliados distintos sin autorización (' + p.sinAut + (p.sinAut === 1 ? ' intento denegado' : ' intentos denegados') + '): no se le entregó nada.' : 'Retiró para ' + n + ' afiliados distintos.') + (dr ? ' Recetas ' + delDr(dr) + '.' : ''), nivel: p.sinAut ? 'alta' : 'media' });
     });
     var porAf = Object.create(null);
     all.forEach(function (r) {
@@ -1805,7 +1836,8 @@ td .sub.show-narrow { display: none; }
         '<div class="num">' + esc(a.credencial) + '</div><div class="foot"><span>' + a.edad + ' años</span><span>Face ID activo</span></div></div>';
       var recetas = '<div class="card"><div class="card-h"><h3>Mis recetas</h3></div>' + (activas.length ? '<div class="rows">' + activas.slice(0, 8).map(function (r) {
         var m = med(r.med), lista = dispensable(r);
-        var sub = lista ? 'Lista para retirar · vence el ' + fecha(r.vence)
+        var ult = r.intentos && r.intentos.length ? r.intentos[r.intentos.length - 1] : null;
+        var sub = lista ? 'Lista para retirar · vence el ' + fecha(r.vence) + (ult ? '. ' + ult.nombre + ' quiso retirarla sin tu autorización: no se le entregó.' : '')
           : r.estado === 'sin_cobertura' && r.retiro ? 'La retiró ' + r.retiro.nombre + ' sin tu autorización, sin cobertura. Si todavía la necesitás, pedile una receta nueva a tu médico.'
           : r.retiro ? 'Retiró ' + r.retiro.nombre + ' · ' + hora(r.retiro.t) : r.estado === 'no_coincide' ? 'El médico está revisando' : r.estado === 'anulada' ? 'Anulada: no la reconociste' : 'No se emitió';
         return '<div class="row rx" data-id="' + esc(r.id) + '"><div class="info"><b>' + esc(m.nombre) + '</b><small>' + esc(sub) + '</small>' +
@@ -1867,15 +1899,23 @@ td .sub.show-narrow { display: none; }
           ui.busy = false;
           if (ui.sel !== rid) return;
           ui.scan = { id: rid, quien: quien, outcome: outcome, fam: fam ? { nombre: fam.nombre, relacion: fam.relacion } : null };
+          // Quien no es el afiliado ni un familiar autorizado: el retiro se deniega en el momento, no hay nada que confirmar.
+          if (quien === 'otra') {
+            if (Acciones.denegar(rid)) toast('Retiro denegado: no es ' + a.corto + ' ni un familiar autorizado. No se entrega y queda la alerta.', 'bad');
+            else { ui.scan = null; toast('Esta receta ya no se puede dispensar.', 'bad'); }
+            keep(renderDetail); revealIn(root, '#f-detail .verdict');
+            return;
+          }
           keep(renderDetail); revealIn(root, '[data-act=dispensar]');
           var nb = root.querySelector('[data-act=dispensar]'); if (nb) nb.focus({ preventScroll: true });
         });
       }
+      if (act === 'otra-vez') { ui.scan = null; ui.quien = 'afiliado'; keep(renderDetail); focusSoon(root, '[data-act=escanear]'); }
       if (act === 'dispensar') {
         var id = ui.sel, s = ui.scan;
         if (!s || s.id !== id) return;
         if (!Acciones.dispensar(id, s.quien)) { toast(s.quien === 'familiar' ? 'La autorización del familiar ya no está vigente.' : 'Esta receta ya no se puede dispensar.', 'bad'); ui.scan = null; keep(render); return; }
-        toast(s.quien === 'afiliado' ? 'Dispensada con cobertura. Comprobante enviado.' : s.quien === 'familiar' ? 'Dispensada con alerta para la obra social.' : 'Dispensada sin cobertura. Quedó la alerta.', s.quien === 'afiliado' ? 'ok' : s.quien === 'familiar' ? 'warn' : 'bad');
+        toast(s.quien === 'afiliado' ? 'Dispensada con cobertura. Comprobante enviado.' : 'Dispensada con alerta para la obra social.', s.quien === 'afiliado' ? 'ok' : 'warn');
         ui.scan = null; ui.recien = id; keep(render); revealIn(root, '#f-detail'); focusSoon(root, '#f-detail .receipt h3');
       }
     });
@@ -1959,7 +1999,7 @@ td .sub.show-narrow { display: none; }
       if (!v.motivo && dispensable(r)) {
         html += '<div class="card"><div class="card-h"><h3>Validar a quien retira</h3></div>';
         var s = ui.scan && ui.scan.id === r.id ? ui.scan : null;
-        if (!s) html += '<p class="hint">Quien retira muestra su DNI y valida con Face ID. Titular: con cobertura. Familiar autorizado: con cobertura y alerta. Otra persona: sin cobertura.</p>' +
+        if (!s) html += '<p class="hint">Quien retira muestra su DNI y valida con Face ID. Titular: con cobertura. Familiar autorizado: con cobertura y alerta. Otra persona: retiro denegado, no se entrega.</p>' +
           '<button class="btn btn-primary btn-block" type="button" data-act="escanear">' + ICON.face + 'Validar con Face ID a quien retira</button>';
         else {
           var o = s.outcome, sf = s.fam || { nombre: 'Familiar', relacion: '' };
@@ -1970,7 +2010,7 @@ td .sub.show-narrow { display: none; }
             check('ok', 'Hora', hora(Date.now()) + ' · queda en el comprobante') + '</div>';
           html += o === 'ok' ? '<div class="verdict v-ok"><b>Todo coincide</b><span>Se dispensa con ' + m.cob + '% de cobertura.</span></div><button class="btn btn-ok btn-block" type="button" data-act="dispensar">' + ICON.check + 'Confirmar entrega con cobertura</button>'
             : o === 'warn' ? '<div class="verdict v-warn"><b>Retira un familiar con autorización</b><span>Se dispensa con cobertura y queda una alerta para la obra social.</span></div><button class="btn btn-warn btn-block" type="button" data-act="dispensar">' + ICON.alert + 'Confirmar entrega con alerta</button>'
-            : '<div class="verdict v-bad"><b>Sin autorización</b><span>Puede comprarlo sin cobertura: ' + pesos(m.precio) + '. Queda una alerta.</span></div><button class="btn btn-bad btn-block" type="button" data-act="dispensar">Confirmar entrega sin cobertura</button>';
+            : '<div class="verdict v-bad"><b>Retiro denegado</b><span>No es ' + esc(a.nombre) + ' ni un familiar autorizado: no se entrega. Queda una alerta para la obra social y ' + esc(a.corto) + ' lo ve en su app. La receta sigue lista para ' + esc(a.corto) + '.</span></div><button class="btn btn-ghost btn-block" type="button" data-act="otra-vez">Validar a otra persona</button>';
         }
         html += '</div>';
       }
@@ -2077,7 +2117,7 @@ td .sub.show-narrow { display: none; }
       root.querySelector('#o-kpis').innerHTML =
         '<div class="kpi"><small>Emitidas</small><b>' + count(EMITIDAS) + '</b><span>con Face ID o excepción</span></div>' +
         '<div class="kpi k-ok"><small>Dispensadas</small><b>' + count({ dispensada: 1, dispensada_alerta: 1 }) + '</b><span>con cobertura</span></div>' +
-        '<div class="kpi k-bad"><small>Frenadas</small><b>' + count(FRENADAS) + '</b><span>firmas bloqueadas, no emitidas, anuladas o entregadas sin cobertura</span></div>' +
+        '<div class="kpi k-bad"><small>Frenadas</small><b>' + (count(FRENADAS) + all.reduce(function (n, r) { return n + (r.intentos ? r.intentos.length : 0); }, 0)) + '</b><span>firmas bloqueadas, no emitidas, anuladas o retiros denegados</span></div>' +
         '<div class="kpi k-warn"><small>Para revisar</small><b>' + pend + '</b><span>' + alertas + (alertas === 1 ? ' alerta' : ' alertas') + ' en total</span></div>';
       root.querySelector('#o-total').textContent = all.length ? all.length + (all.length === 1 ? ' receta' : ' recetas') : '';
       var by = Object.create(null); all.forEach(function (r) { by[r.estado] = (by[r.estado] || 0) + 1; });
@@ -2163,7 +2203,7 @@ td .sub.show-narrow { display: none; }
     var cards = [
       ['medico', 'Médico', 'Arma y firma la receta. Si otra persona usa su matrícula, se bloquea.', 'firmá para Rosa; después elegí «Secretaria» en el Simulador.', 'Entrar como médico →'],
       ['paciente', 'Paciente', 'La app de la obra social: valida con Face ID, recibe la receta con QR y, si salió con excepción sin su Face ID, puede decir «No la reconozco».', 'validá con Face ID; con «Otra persona», no coincide.', 'Abrir la app del paciente →'],
-      ['farmacia', 'Farmacia', 'Lee el QR, valida con Face ID a quien retira y entrega con comprobante.', 'con «Otra persona», sale sin cobertura.', 'Atender en la farmacia →'],
+      ['farmacia', 'Farmacia', 'Lee el QR, valida con Face ID a quien retira y entrega con comprobante.', 'con «Otra persona», el retiro se deniega.', 'Atender en la farmacia →'],
       ['obra-social', 'Obra social', 'Elige los controles, sigue cada receta en vivo y revisa las señales de la IA.', 'Simulador › «Cargar actividad de ejemplo».', 'Ver el tablero →']
     ];
     var acc = { medico: 'var(--medico)', paciente: 'var(--paciente)', farmacia: 'var(--farmacia)', 'obra-social': 'var(--obra)' };
@@ -2173,7 +2213,7 @@ td .sub.show-narrow { display: none; }
       [ICON.face, 'Paciente presente', 'El paciente confirma con Face ID que está ahí: al llegar o en la consulta, según elija la obra social. Si no puede, el médico emite con una excepción justificada, que deja alerta.'],
       [ICON.bell, 'Aviso al afiliado', 'Si una receta salió con excepción, sin su Face ID, le llega un aviso a la app. Si responde «No la reconozco», se anula; si ya se retiró, queda la alerta para la obra social.'],
       [ICON.qr, 'QR único', 'Cada receta tiene un código único (CUIR) en su QR: la farmacia comprueba que sea auténtica, esté vigente y no se haya usado.'],
-      [ICON.receipt, 'Entrega confirmada', 'Quien retira valida su Face ID. Titular: con cobertura. Familiar autorizado: con cobertura y alerta. Otra persona: sin cobertura. Siempre queda un comprobante.'],
+      [ICON.receipt, 'Entrega confirmada', 'Quien retira valida su Face ID. Titular: con cobertura. Familiar autorizado: con cobertura y alerta. Otra persona: no se entrega, retiro denegado. Siempre queda registro.'],
       [ICON.spark, 'Patrones con IA', 'Marca patrones raros: muchas recetas en poco tiempo, una farmacia que concentra un remedio, alguien que retira para muchos. Un auditor revisa antes de hablar de fraude.']
     ];
     var ancho = false; try { ancho = window.matchMedia('(min-width: 761px)').matches; } catch (e) {}
@@ -2290,7 +2330,8 @@ td .sub.show-narrow { display: none; }
       else if (r.estado === 'esperando') s = ['paciente', 2, 'En la app de ' + X + ', tocá «Validar con Face ID». En el Simulador, «Otra persona» no coincide y «En su casa» sin telemedicina queda fuera del consultorio.'];
       else if (r.estado === 'no_coincide') s = ['medico', 2, 'La cara no coincidió. El médico decide: emitir con excepción (deja una alerta y le avisa al paciente) o no emitir.'];
       else if (r.estado === 'emitida_alerta' && porConfirmar(r)) s = ['paciente', 3, 'Salió con excepción: a ' + X + ' le llegó un aviso. «No la reconozco» la anula; «Sí, es mía» la deja lista para la farmacia.'];
-      else if (dispensable(r)) s = ['farmacia', 3, 'Elegí la receta de ' + X + ': se valida el QR. Después, en el Simulador, elegí quién vino a retirar y validá su Face ID.'];
+      else if (dispensable(r) && r.intentos && r.intentos.length) s = ['farmacia', 3, 'Retiro denegado: no era ' + X + ' ni un familiar autorizado, no se entregó y quedó la alerta. Ahora elegí «' + X + ' (titular)» o el familiar autorizado y validá.'];
+      else if (dispensable(r)) s = ['farmacia', 3, 'Elegí la receta de ' + X + ': se valida el QR. Después, en el Simulador, elegí quién vino a retirar y validá su Face ID. Con «Otra persona», el retiro se deniega.'];
       else if (r.estado === 'anulada') s = ['obra', 4, X + ' no reconoció la receta: quedó anulada y aparece en «Señales para revisar».'];
       else if (r.estado === 'rechazada') s = ['medico', 1, 'La receta no se emitió y quedó registrada. Probá con otra.'];
       else if (r.reconocida === false) s = ['obra', 4, X + ' no reconoció una receta que ya se había retirado: suma una alerta y aparece en «Señales para revisar».'];
